@@ -780,6 +780,28 @@ height: 100dvh !important;
         <button class="btn secondary" id="newSearchBtn" type="button">ΝΕΑ ΑΝΑΖΗΤΗΣΗ</button>
       </div>
 
+      <!-- ΔΟΚΙΜΗ ΕΝΣΩΜΑΤΩΣΗΣ ΦΟΡΜΑΣ ΕΙΟ -->
+<div style="text-align:center; margin:20px 0;">
+  <button
+    class="btn"
+    type="button"
+    onclick="document.getElementById('eioTestWrap').style.display='block'; this.style.display='none';"
+  >
+    ΔΟΚΙΜΗ ΦΟΡΜΑΣ ΕΙΟ
+  </button>
+</div>
+
+<div
+  id="eioTestWrap"
+  style="display:none; width:100%; max-width:1100px; margin:20px auto;"
+>
+  <iframe
+    src="https://www.offshore.org.gr/mail/raceprogram.php?intro=yes&show=available"
+    style="width:100%; height:1200px; border:1px solid #ccc; background:white;"
+    title="Δήλωση Πληρώματος ΕΙΟ"
+  ></iframe>
+</div>
+
 <div id="crewScreen" style="display:none; max-width:720px; margin:20px auto; border:1px solid #bfb6aa; padding:28px; background:white; text-align:center; border-radius:6px;">
 
   <h3 style="text-align:center;"> ΚΑΤΑΧΩΡΗΣΗ ΣΤΟΙΧΕΙΩΝ ΠΛΗΡΩΜΑΤΟΣ</h3>
