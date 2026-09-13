@@ -776,7 +776,7 @@ height: 100dvh !important;
         <div class="result-title" id="resultText"></div>
       </div>
 
-      <div class="actions" id="actions"><button class="btn" id="continueBtn" type="button">ΚΑΤΑΧΩΡΗΣΗ ΠΛΗΡΩΜΑΤΟΣ</button>
+      <div class="actions" id="actions"><button class="btn" id="continueBtn" type="button">ΔΗΛΩΣΗ ΠΛΗΡΩΜΑΤΟΣ ΕΙΟ</button>
         <button class="btn secondary" id="newSearchBtn" type="button">ΝΕΑ ΑΝΑΖΗΤΗΣΗ</button>
       </div>
 
@@ -2219,7 +2219,13 @@ const boatLookupWarmup =
     handleCrewEditReturn();
 
     searchBtn.addEventListener("click", searchBoat);
-    continueBtn.addEventListener("click", showCrewScreen);
+   continueBtn.addEventListener("click", function () {
+  document.getElementById("eioTestWrap").style.display = "block";
+  document.getElementById("eioTestWrap").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
     newSearchBtn.addEventListener("click", resetSearch);
 
     sailInput.addEventListener("keydown", function (e) {
