@@ -802,6 +802,31 @@ height: 100dvh !important;
   ></iframe>
 </div>
 
+  <div
+  id="eioConfirmBox"
+  style="margin:20px auto; padding:16px; max-width:760px; background:#fff8d8; border:2px solid #d39b00; border-radius:8px; text-align:center;"
+>
+  <label style="font-size:16px; font-weight:700; line-height:1.5;">
+    <input
+      type="checkbox"
+      id="eioCompletedCheck"
+      style="width:22px; height:22px; margin-right:10px; vertical-align:middle;"
+      onchange="document.getElementById('continueAfterEioBtn').style.display = this.checked ? 'inline-block' : 'none';"
+    >
+    Έχω ολοκληρώσει και υποβάλει οριστικά τη δήλωση πληρώματος στην ΕΙΟ
+  </label>
+
+  <div style="margin-top:16px;">
+    <button
+      id="continueAfterEioBtn"
+      class="btn"
+      type="button"
+      style="display:none;"
+    >
+      ΣΥΝΕΧΕΙΑ ΣΤΗΝ ΑΙΤΗΣΗ ΣΥΜΜΕΤΟΧΗΣ
+    </button>
+  </div>
+</div>    
 <div id="crewScreen" style="display:none; max-width:720px; margin:20px auto; border:1px solid #bfb6aa; padding:28px; background:white; text-align:center; border-radius:6px;">
 
   <h3 style="text-align:center;"> ΚΑΤΑΧΩΡΗΣΗ ΣΤΟΙΧΕΙΩΝ ΠΛΗΡΩΜΑΤΟΣ</h3>
