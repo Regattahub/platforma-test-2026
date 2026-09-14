@@ -829,6 +829,27 @@ height: 100dvh !important;
         id="orcReferenceValue"
         style="font-size:22px; font-weight:800; letter-spacing:1px; padding:0 90px;"
       ></div>
+
+      <button
+        id="copyOrcReferenceBtn"
+        type="button"
+        onclick="copyOrcReference()"
+        style="
+          margin-top:9px;
+          min-width:150px;
+          height:38px;
+          padding:0 16px;
+          border:none;
+          border-radius:5px;
+          background:#4d8b1f;
+          color:#fff;
+          font-size:14px;
+          font-weight:800;
+          cursor:pointer;
+        "
+      >
+        ΑΝΤΙΓΡΑΦΗ
+      </button>
     </div>
 
     <div
@@ -848,18 +869,18 @@ height: 100dvh !important;
   </div>
 
   <div
-  style="
-    max-width:760px;
-    margin:0 auto 10px auto;
-    text-align:center;
-    font-size:13px;
-    line-height:1.45;
-    color:#5f5147;
-  "
->
-  Η δήλωση πληρώματος πραγματοποιείται στην εφαρμογή της Ελληνικής Ιστιοπλοϊκής Ομοσπονδίας (ΕΙΟ/ΕΑΘ), η οποία προβάλλεται εδώ για τη διευκόλυνση του χρήστη.
-</div>
-  
+    style="
+      max-width:760px;
+      margin:0 auto 10px auto;
+      text-align:center;
+      font-size:13px;
+      line-height:1.45;
+      color:#5f5147;
+    "
+  >
+    Η δήλωση πληρώματος πραγματοποιείται στην εφαρμογή της Ελληνικής Ιστιοπλοϊκής Ομοσπονδίας (ΕΙΟ/ΕΑΘ), η οποία προβάλλεται εδώ για τη διευκόλυνση του χρήστη.
+  </div>
+
   <iframe
     src="https://www.offshore.org.gr/mail/raceprogram.php?intro=yes&show=available"
     style="width:100%; height:1200px; border:1px solid #ccc; background:white;"
@@ -2308,6 +2329,51 @@ const boatLookupWarmup =
     handleCrewEditReturn();
 
     searchBtn.addEventListener("click", searchBoat);
+
+function copyOrcReference() {
+  const valueEl = document.getElementById("orcReferenceValue");
+  const button = document.getElementById("copyOrcReferenceBtn");
+  const value = valueEl ? String(valueEl.textContent || "").trim() : "";
+
+  if (!value) return;
+
+  function showCopied() {
+    if (!button) return;
+    button.textContent = "ΑΝΤΙΓΡΑΦΗΚΕ ✓";
+    window.setTimeout(function () {
+      if (button) button.textContent = "ΑΝΤΙΓΡΑΦΗ";
+    }, 1800);
+  }
+
+  function fallbackCopy() {
+    const temp = document.createElement("textarea");
+    temp.value = value;
+    temp.setAttribute("readonly", "");
+    temp.style.position = "fixed";
+    temp.style.left = "-9999px";
+    temp.style.opacity = "0";
+    document.body.appendChild(temp);
+    temp.select();
+    temp.setSelectionRange(0, temp.value.length);
+
+    try {
+      document.execCommand("copy");
+      showCopied();
+    } catch (error) {
+      alert("Δεν ήταν δυνατή η αυτόματη αντιγραφή. Επιλέξτε τον κωδικό χειροκίνητα.");
+    }
+
+    document.body.removeChild(temp);
+  }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(value)
+      .then(showCopied)
+      .catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+}
 
 continueBtn.addEventListener("click", function () {
   document.getElementById("eioTestWrap").style.display = "block";
