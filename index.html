@@ -795,6 +795,24 @@ height: 100dvh !important;
   id="eioTestWrap"
   style="display:none; width:100%; max-width:1100px; margin:20px auto;"
 >
+  <div
+  id="orcReferenceBox"
+  style="display:none; margin:0 auto 18px auto; padding:14px; max-width:760px; background:#eaf6ff; border:2px solid #2b7bbb; border-radius:8px; text-align:center; font-size:16px;"
+>
+  <div style="font-weight:700; margin-bottom:8px;">
+    ORC Reference πιστοποιητικού
+  </div>
+
+  <div
+    id="orcReferenceValue"
+    style="font-size:22px; font-weight:800; letter-spacing:1px;"
+  ></div>
+
+  <div style="margin-top:8px;">
+    Αντιγράψτε τον παραπάνω κωδικό στο πεδίο
+    «ORC Reference πιστοποιητικού» της ΕΙΟ.
+  </div>
+</div>
   <iframe
     src="https://www.offshore.org.gr/mail/raceprogram.php?intro=yes&show=available"
     style="width:100%; height:1200px; border:1px solid #ccc; background:white;"
@@ -2244,9 +2262,17 @@ const boatLookupWarmup =
 
     searchBtn.addEventListener("click", searchBoat);
 
-    continueBtn.addEventListener("click", function () {
+continueBtn.addEventListener("click", function () {
   document.getElementById("eioTestWrap").style.display = "block";
   document.getElementById("eioConfirmBox").style.display = "block";
+
+  const orcReference = lastFoundData && lastFoundData.orc_reference
+    ? String(lastFoundData.orc_reference).trim()
+    : "";
+
+  document.getElementById("orcReferenceValue").textContent = orcReference;
+  document.getElementById("orcReferenceBox").style.display =
+    orcReference ? "block" : "none";
 
   document.getElementById("eioTestWrap").scrollIntoView({
     behavior: "smooth",
