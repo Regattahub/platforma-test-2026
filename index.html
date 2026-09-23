@@ -2375,7 +2375,15 @@ function copyOrcReference() {
   }
 }
 
+const USE_EIO_FLOW = false;
+
 continueBtn.addEventListener("click", function () {
+
+  if (!USE_EIO_FLOW) {
+    showCrewScreen();
+    return;
+  }
+
   document.getElementById("eioTestWrap").style.display = "block";
   document.getElementById("eioConfirmBox").style.display = "block";
 
