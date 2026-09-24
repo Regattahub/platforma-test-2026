@@ -821,13 +821,23 @@ body.jotform-open #formFrame {
     autocapitalize="characters"
   />
 
-  <input
-    type="text"
-    id="modificationCode"
-    placeholder="Κωδικός τροποποίησης"
-    autocomplete="off"
-    spellcheck="false"
-  />
+  <button class="btn secondary" id="sendOtpBtn" type="button">
+    ΑΠΟΣΤΟΛΗ ΚΩΔΙΚΟΥ SMS
+  </button>
+
+  <div id="otpArea" style="display:none; margin-top:10px;">
+    <input
+      type="text"
+      id="otpCode"
+      placeholder="Κωδικός SMS"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+    />
+
+    <button class="btn" id="verifyOtpBtn" type="button">
+      ΕΠΙΒΕΒΑΙΩΣΗ ΚΩΔΙΚΟΥ
+    </button>
+  </div>
 
   <button class="btn" id="searchBtn" type="button">
     ΑΝΑΖΗΤΗΣΗ
@@ -965,7 +975,7 @@ body.jotform-open #formFrame {
     "https://script.google.com/macros/s/AKfycbwZHkHtIf_wc9cMTh51gOUidUjBQ1b2-1JjmlZbUPzlfO1GnYpJ76lRIP0x2Gak_G52/exec?action=settings&settings=1UPMKC_dUtJ958dgUpby3HYBwVPPyNe9AlastWySzK98",
 
   BOAT_LOOKUP_URL:
-    "__BOAT_LOOKUP_URL__",
+    "https://script.google.com/macros/s/AKfycbzHY0bdyLcd-Yv2cydo_rZ1xavsXOp5wYV-K9_cNDIw-QV2-71YaRmtOJ0bPQQqPThb/exec",
 
   PERSON_LOOKUP_URL:
     "https://script.google.com/macros/s/AKfycbw-zgZZeHRC6S5_f1xGkTwx-wXcFNq9z2O4cfhzAHSULQNDrwCp88vcvgU-617pgcg1/exec",
@@ -1101,6 +1111,13 @@ wosr_member_2: "wosr_member_2"
 
     const sailInput = document.getElementById("sailNumber");
     const searchBtn = document.getElementById("searchBtn");
+    const sendOtpBtn = document.getElementById("sendOtpBtn");
+    const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+    const otpArea = document.getElementById("otpArea");
+    const otpCodeInput = document.getElementById("otpCode");
+
+    let otpToken = "";
+
     const continueBtn = document.getElementById("continueBtn");
     const newSearchBtn = document.getElementById("newSearchBtn");
     const statusBox = document.getElementById("status");
@@ -1656,19 +1673,23 @@ function buildCrewTextForPdf() {
 
   return text.trimEnd();
 }
-function boatLookupJsonp(sailNumber, modificationCode) {
-  return new Promise(function (resolve, reject) {
+function otpJsonp(action, params = {}) {
+  return new Promise((resolve, reject) => {
     const callbackName =
-      "__boatLookupCallback_" +
+      "__otpCallback_" +
       Date.now() +
       "_" +
       Math.random().toString(36).slice(2);
 
     const script = document.createElement("script");
-    let timeoutId;
+
+    const timeoutId = setTimeout(() => {
+      cleanup();
+      reject(new Error("Η υπηρεσία OTP άργησε να απαντήσει."));
+    }, 20000);
 
     function cleanup() {
-      if (timeoutId) clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
       if (script.parentNode) {
         script.parentNode.removeChild(script);
@@ -1688,104 +1709,263 @@ function boatLookupJsonp(sailNumber, modificationCode) {
 
     script.onerror = function () {
       cleanup();
-      reject(new Error("Αποτυχία επικοινωνίας με το σύστημα αναζήτησης."));
+      reject(new Error("Δεν ήταν δυνατή η επικοινωνία με την υπηρεσία OTP."));
     };
 
-    const separator = BOAT_LOOKUP_URL.includes("?") ? "&" : "?";
+    const query = new URLSearchParams({
+      action,
+      ...params,
+      callback: callbackName,
+      _: Date.now()
+    });
 
-    script.src =
-      BOAT_LOOKUP_URL +
-      separator +
-     "id=" +
-encodeURIComponent(sailNumber) +
-"&modificationCode=" +
-encodeURIComponent(modificationCode) +
-"&callback=" +
-      encodeURIComponent(callbackName) +
-      "&_=" +
-      Date.now();
-
-    timeoutId = setTimeout(function () {
-      cleanup();
-      reject(new Error("Η αναζήτηση άργησε να απαντήσει."));
-    }, 15000);
-
+    script.src = BOAT_LOOKUP_URL + "?" + query.toString();
     document.body.appendChild(script);
   });
 }
-    async function searchBoat() {
-      
-      const acceptTerms = document.getElementById("acceptTermsCheck");
 
-if (acceptTerms && !acceptTerms.checked) {
-  alert("Παρακαλούμε αποδεχθείτε την Πολιτική Απορρήτου και τους Όρους Χρήσης για να συνεχίσετε.");
-  acceptTerms.scrollIntoView({ behavior: "smooth", block: "center" });
-  return;
-}
-      const sailNumber = sailInput.value.trim();
-      const modificationCode =
-       document.getElementById("modificationCode").value.trim();
-      if (!sailNumber) {
-        setStatus("Παρακαλώ πληκτρολόγησε αριθμό ιστίου.", true, false, true);
-        hideResult();
-        return;
-      }
-if (!modificationCode) {
-  setStatus(
-    "Παρακαλώ πληκτρολόγησε τον Κωδικό Τροποποίησης.",
-    true,
-    false,
-    true
-  );
+async function requestOtpFromTwilio() {
+  const sailNumber = sailInput.value.trim();
 
-  document.getElementById("modificationCode").focus();
-  hideResult();
-  return;
-}
-      
-      setStatus("Γίνεται αναζήτηση...", false, true, true);
-      hideResult();
-
-      try {
-    const json = await boatLookupJsonp(sailNumber, modificationCode);
-
-        if (!json.ok) {
-          setStatus("Σφάλμα στο σύστημα αναζήτησης.", true, false, true);
-          return;
-        }
-
-      if (!json.found) {
-  if (json.invalidModificationCode) {
+  if (!sailNumber) {
     setStatus(
-      "Ο Αριθμός Ιστίου ή ο Κωδικός Τροποποίησης δεν είναι σωστός. Παρακαλώ ελέγξτε και δοκιμάστε ξανά.",
+      "Παρακαλώ πληκτρολόγησε πρώτα τον αριθμό ιστίου.",
+      true,
+      false,
+      true
+    );
+    sailInput.focus();
+    return;
+  }
+
+  otpToken = "";
+  otpCodeInput.value = "";
+  otpArea.style.display = "none";
+
+  try {
+    sendOtpBtn.disabled = true;
+    sendOtpBtn.textContent = "ΑΠΟΣΤΟΛΗ...";
+
+    setStatus("Αποστέλλεται κωδικός SMS...", false, true, true);
+
+    const response = await otpJsonp("requestOtp", {
+      id: sailNumber
+    });
+
+    if (!response || response.ok !== true) {
+      throw new Error(
+        response?.error ||
+        "Δεν ήταν δυνατή η αποστολή του κωδικού SMS."
+      );
+    }
+
+    otpArea.style.display = "block";
+
+    setStatus(
+      response.message || "Ο κωδικός SMS στάλθηκε επιτυχώς.",
+      false,
+      false,
+      true
+    );
+
+    otpCodeInput.focus();
+
+  } catch (error) {
+    setStatus(
+      error.message || "Σφάλμα κατά την αποστολή του κωδικού SMS.",
       true,
       false,
       true
     );
 
-    document.getElementById("modificationCode").focus();
+  } finally {
+    sendOtpBtn.disabled = false;
+    sendOtpBtn.textContent = "ΑΠΟΣΤΟΛΗ ΚΩΔΙΚΟΥ SMS";
+  }
+}
+
+async function verifyOtpCode() {
+  const sailNumber = sailInput.value.trim();
+  const code = otpCodeInput.value.trim();
+
+  if (!sailNumber) {
+    setStatus("Δεν βρέθηκε αριθμός ιστίου.", true, false, true);
+    return;
+  }
+
+  if (!code) {
+    setStatus(
+      "Παρακαλώ πληκτρολόγησε τον κωδικό SMS.",
+      true,
+      false,
+      true
+    );
+    otpCodeInput.focus();
+    return;
+  }
+
+  try {
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = "ΕΛΕΓΧΟΣ...";
+
+    setStatus("Ελέγχεται ο κωδικός SMS...", false, true, true);
+
+    const response = await otpJsonp("verifyOtp", {
+      id: sailNumber,
+      code: code
+    });
+
+    if (!response || response.ok !== true) {
+      throw new Error(
+        response?.error ||
+        "Ο κωδικός SMS δεν είναι σωστός."
+      );
+    }
+
+    otpToken = response.otpToken || "";
+
+    if (!otpToken) {
+      throw new Error("Δεν δημιουργήθηκε OTP token.");
+    }
+
+    setStatus(
+      "Ο κωδικός επιβεβαιώθηκε επιτυχώς.",
+      false,
+      false,
+      true
+    );
+
+  } catch (error) {
+    otpToken = "";
+
+    setStatus(
+      error.message || "Ο κωδικός SMS δεν επιβεβαιώθηκε.",
+      true,
+      false,
+      true
+    );
+
+  } finally {
+    verifyOtpBtn.disabled = false;
+    verifyOtpBtn.textContent = "ΕΠΙΒΕΒΑΙΩΣΗ ΚΩΔΙΚΟΥ";
+  }
+}
+
+async function searchBoat() {
+  const acceptTerms = document.getElementById("acceptTermsCheck");
+
+  if (acceptTerms && !acceptTerms.checked) {
+    alert(
+      "Παρακαλούμε αποδεχθείτε την Πολιτική Απορρήτου και τους Όρους Χρήσης για να συνεχίσετε."
+    );
+    acceptTerms.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+    return;
+  }
+
+  const sailNumber = sailInput.value.trim();
+
+  if (!sailNumber) {
+    setStatus(
+      "Παρακαλώ πληκτρολόγησε αριθμό ιστίου.",
+      true,
+      false,
+      true
+    );
+    hideResult();
+    return;
+  }
+
+  if (!otpToken) {
+    setStatus(
+      "Πρέπει πρώτα να επιβεβαιώσετε τον κωδικό SMS.",
+      true,
+      false,
+      true
+    );
+    otpCodeInput.focus();
+    hideResult();
     return;
   }
 
   setStatus(
-    "Δεν βρέθηκαν στοιχεία για αυτόν τον αριθμό ιστίου.",
-    true,
+    "Γίνεται αναζήτηση...",
     false,
+    true,
     true
   );
 
-  return;
-}
+  hideResult();
 
-      lastFoundData = json.data || {};
-console.log("DATA ΠΟΥ ΗΡΘΑΝ:", lastFoundData);
-showResult(lastFoundData);
-setStatus("Η αναζήτηση ολοκληρώθηκε.");
-      } catch (err) {
-        console.error(err);
-        setStatus("Σφάλμα επικοινωνίας με το σύστημα αναζήτησης.", true, false, true);
-      }
+  try {
+    const json = await otpJsonp("lookupCrewOtp", {
+      id: sailNumber,
+      otpToken: otpToken
+    });
+
+    if (!json || json.ok !== true) {
+      setStatus(
+        json?.error || "Σφάλμα στο σύστημα αναζήτησης.",
+        true,
+        false,
+        true
+      );
+      return;
     }
+
+    if (!json.found) {
+      if (json.invalidOtpToken) {
+        otpToken = "";
+
+        setStatus(
+          "Η επιβεβαίωση SMS έχει λήξει. Ζητήστε νέο κωδικό.",
+          true,
+          false,
+          true
+        );
+
+        return;
+      }
+
+      setStatus(
+        "Δεν βρέθηκαν στοιχεία για αυτόν τον αριθμό ιστίου.",
+        true,
+        false,
+        true
+      );
+
+      return;
+    }
+
+    lastFoundData = json.data || {};
+
+    console.log(
+      "DATA ΠΟΥ ΗΡΘΑΝ:",
+      lastFoundData
+    );
+
+    showResult(lastFoundData);
+
+    setStatus(
+      "Η αναζήτηση ολοκληρώθηκε.",
+      false,
+      false,
+      true
+    );
+
+  } catch (err) {
+    console.error(err);
+
+    setStatus(
+      "Σφάλμα επικοινωνίας με το σύστημα αναζήτησης.",
+      true,
+      false,
+      true
+    );
+  }
+}
 
     function updateCrewThroughAppsScript(data, crewRows) {
   return new Promise((resolve, reject) => {
@@ -1796,9 +1976,9 @@ setStatus("Η αναζήτηση ολοκληρώθηκε.");
       ""
     ).trim();
 
-    const modificationCode = String(
-      document.getElementById("modificationCode")?.value || ""
-    ).trim();
+   const currentOtpToken = String(
+  otpToken || ""
+).trim();
 
     const submissionId = String(
       data.submission_id ||
@@ -1812,10 +1992,10 @@ setStatus("Η αναζήτηση ολοκληρώθηκε.");
       return;
     }
 
-    if (!modificationCode) {
-      reject(new Error("Δεν βρέθηκε ο κωδικός τροποποίησης."));
-      return;
-    }
+   if (!currentOtpToken) {
+  reject(new Error("Η επιβεβαίωση SMS έχει λήξει ή δεν είναι διαθέσιμη."));
+  return;
+}
 
     if (!submissionId) {
       reject(new Error("Δεν βρέθηκε το Submission ID."));
@@ -1869,7 +2049,7 @@ setStatus("Η αναζήτηση ολοκληρώθηκε.");
 
     params.set("action", "updateCrew");
     params.set("id", sailNumber);
-    params.set("modificationCode", modificationCode);
+    params.set("otpToken", currentOtpToken);
     params.set("submissionId", submissionId);
     params.set("crewJson", JSON.stringify(crewRows));
 
@@ -2086,11 +2266,13 @@ async function continueToForm() {
     function resetSearch() {
       localStorage.removeItem(STORAGE_KEY);
       sailInput.value = "";
+      otpToken = "";
+      otpCodeInput.value = "";
+      otpArea.style.display = "none";
       setStatus("");
       hideResult();
       sailInput.focus();
       window.scrollTo({ top: 0, behavior: "smooth" });
-      
     }
 
     function getCaptainState() {
@@ -2206,9 +2388,18 @@ async function continueToForm() {
 
     handleCrewEditReturn();
 
+    sendOtpBtn.addEventListener("click", requestOtpFromTwilio);
+    verifyOtpBtn.addEventListener("click", verifyOtpCode);
     searchBtn.addEventListener("click", searchBoat);
     continueBtn.addEventListener("click", showCrewScreen);
     newSearchBtn.addEventListener("click", resetSearch);
+
+    sailInput.addEventListener("input", function () {
+      otpToken = "";
+      otpCodeInput.value = "";
+      otpArea.style.display = "none";
+      hideResult();
+    });
 
     sailInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
