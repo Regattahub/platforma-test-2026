@@ -1343,8 +1343,10 @@ function applyRaceSettingsData(data) {
 
   const jotformId =
     data.jotformFormId || data.jotformId || CONFIG.JOTFORM_FORM_ID;
-  const jotformUrl =
-    data.jotformFormUrl || data.jotformUrl || CONFIG.JOTFORM_BASE_URL;
+const jotformUrl =
+  data.jotformFormUrl ||
+  data.jotformUrl ||
+  (jotformId ? "https://form.jotform.com/" + jotformId : CONFIG.JOTFORM_BASE_URL);
 
   CONFIG.JOTFORM_FORM_ID = String(jotformId || "").trim();
   CONFIG.JOTFORM_BASE_URL = normalizeJotformUrl(
