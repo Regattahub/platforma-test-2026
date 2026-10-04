@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RegattaFlow - Ειρήνης - Φιλίας 2026</title>
 <!-- RegattaHub MASTER race template -->
-<!-- TEST COPY built from verified-working VATHY index; VATHY source untouched; EIO parser v2 -->
+<!-- TEST COPY built from verified-working VATHY index; VATHY source untouched; EIO parser v3 + automatic captain fill -->
 <!-- Race-specific values are injected by New Race Wizard -->
 
   <style>
@@ -2732,6 +2732,22 @@ function rhEioImport_(payload) {
       ? "✓ Φορτώθηκε 1 δελτίο από την ΕΙΟ."
       : "✓ Φορτώθηκαν " + records.length + " δελτία από την ΕΙΟ."
   );
+
+  // Αν ήρθε ένα μόνο δελτίο, το περνάμε αυτόματα στον Κυβερνήτη
+  // και εκτελούμε αμέσως την ίδια τοπική αναζήτηση.
+  if (records.length === 1) {
+    const captainInput = document.getElementById("captainCardInput");
+
+    if (captainInput) {
+      captainInput.value = records[0].card || records[0].key || "";
+
+      // Μικρή καθυστέρηση ώστε να ολοκληρωθεί πρώτα η εισαγωγή του dataset.
+      setTimeout(function () {
+        lookupPerson(captainInput);
+        captainInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+    }
+  }
 }
 
 document.addEventListener("regattahub:eio-data", function (event) {
