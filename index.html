@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RegattaFlow - Ειρήνης - Φιλίας 2026</title>
 <!-- RegattaHub MASTER race template -->
-<!-- TEST COPY built from verified-working VATHY index; VATHY source untouched -->
+<!-- TEST COPY built from verified-working VATHY index; VATHY source untouched; EIO parser v2 -->
 <!-- Race-specific values are injected by New Race Wizard -->
 
   <style>
@@ -2634,28 +2634,72 @@ function rhEioParse_(payload) {
   if (!html.trim()) return [];
 
   const doc = new DOMParser().parseFromString(html, "text/html");
-  const recordEls = Array.from(doc.querySelectorAll(".single-record"));
+
+  // Πρώτα δοκιμάζουμε τις γνωστές κάρτες αποτελεσμάτων.
+  let recordEls = Array.from(doc.querySelectorAll(
+    ".single-record, .result-card, .player-card, .search-result, .record"
+  ));
+
+  // Η πραγματική σελίδα της ΕΙΟ μπορεί να μην έχει σταθερό wrapper/class.
+  // Αν δεν βρεθεί γνωστή κάρτα, διαβάζουμε ολόκληρο το body σαν ένα αποτέλεσμα.
+  if (!recordEls.length && doc.body) {
+    recordEls = [doc.body];
+  }
+
   const records = [];
 
   for (const el of recordEls) {
-    const card = rhEioField_(el, [
+    let card = rhEioField_(el, [
       "Αριθμός Μητρώου", "ΑΜ", "Α.Μ.", "Αριθμός Δελτίου"
     ]);
-    const surname = rhEioField_(el, ["Επώνυμο"]);
-    const firstName = rhEioField_(el, ["Όνομα"]);
-    const club = rhEioField_(el, ["Όμιλος", "Σωματείο", "Club"]);
-    const status = rhEioField_(el, ["Κατάσταση Δελτίου", "Κατάσταση", "Status"]);
+    let surname = rhEioField_(el, ["Επώνυμο"]);
+    let firstName = rhEioField_(el, ["Όνομα"]);
+    let club = rhEioField_(el, ["Όμιλος", "Σωματείο", "Club"]);
+    let status = rhEioField_(el, ["Κατάσταση Δελτίου", "Κατάσταση", "Status"]);
+
+    // Fallback από το ορατό κείμενο της σελίδας της ΕΙΟ.
+    // Καλύπτει περιπτώσεις όπου τα labels δεν είναι μέσα σε <strong>.
+    const txt = rhEioClean_(el.innerText || el.textContent || "");
+
+    if (!card) {
+      const m = txt.match(/(?:Αριθμός\s+Μητρώου|Α\.?Μ\.?|Αριθμός\s+Δελτίου)\s*[:\-]?\s*(\d+)/i);
+      if (m) card = m[1];
+    }
+
+    if (!surname) {
+      const m = txt.match(/Επώνυμο\s*[:\-]?\s*([^\n\r]+)/i);
+      if (m) surname = rhEioClean_(m[1]);
+    }
+
+    if (!firstName) {
+      const m = txt.match(/(?:^|\s)Όνομα\s*[:\-]?\s*([^\n\r]+)/i);
+      if (m) firstName = rhEioClean_(m[1]);
+    }
+
+    if (!club) {
+      const m = txt.match(/(?:Όμιλος|Σωματείο)\s*[:\-]?\s*([^\n\r]+)/i);
+      if (m) club = rhEioClean_(m[1]);
+    }
+
+    if (!status) {
+      const m = txt.match(/Κατάσταση\s+Δελτίου\s*[:\-]?\s*([^\n\r]+)/i);
+      if (m) status = rhEioClean_(m[1]);
+    }
 
     const key = rhEioCardKey_(card);
     if (!key || (!surname && !firstName)) continue;
 
-    records.push({
+    const rec = {
       key: key,
       card: String(card || "").replace(/\D/g, ""),
       name: rhEioClean_([surname, firstName].filter(Boolean).join(" ")),
       club: rhEioClean_(club),
       status: rhEioClean_(status)
-    });
+    };
+
+    if (!records.some(r => r.key === rec.key)) {
+      records.push(rec);
+    }
   }
 
   return records;
