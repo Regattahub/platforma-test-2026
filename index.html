@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RegattaFlow - Ειρήνης - Φιλίας 2026</title>
 <!-- RegattaHub MASTER race template -->
-<!-- TEST COPY built from verified-working VATHY index; VATHY source untouched; EIO parser v4 + table multi-result support + automatic captain fill -->
+<!-- TEST COPY built from verified-working VATHY index; VATHY source untouched; EIO parser v5 + multi-result auto-fill to crew field -->
 <!-- Race-specific values are injected by New Race Wizard -->
 
   <style>
@@ -2754,20 +2754,37 @@ function rhEioImport_(payload) {
       : "✓ Φορτώθηκαν " + records.length + " δελτία από την ΕΙΟ."
   );
 
-  // Αν ήρθε ένα μόνο δελτίο, το περνάμε αυτόματα στον Κυβερνήτη
-  // και εκτελούμε αμέσως την ίδια τοπική αναζήτηση.
+  // 1 δελτίο → αυτόματη συμπλήρωση Κυβερνήτη
   if (records.length === 1) {
     const captainInput = document.getElementById("captainCardInput");
 
     if (captainInput) {
       captainInput.value = records[0].card || records[0].key || "";
 
-      // Μικρή καθυστέρηση ώστε να ολοκληρωθεί πρώτα η εισαγωγή του dataset.
       setTimeout(function () {
         lookupPerson(captainInput);
         captainInput.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 50);
     }
+
+    return;
+  }
+
+  // 2+ δελτία → αυτόματη συμπλήρωση στο πεδίο ΠΛΗΡΩΜΑΤΟΣ, ένα ανά γραμμή
+  const bulkCrew = document.getElementById("bulkCrewCards");
+
+  if (bulkCrew) {
+    bulkCrew.value = records
+      .map(function (record) {
+        return record.card || record.key || "";
+      })
+      .filter(Boolean)
+      .join("\n");
+
+    setTimeout(function () {
+      bulkCrew.scrollIntoView({ behavior: "smooth", block: "center" });
+      bulkCrew.focus();
+    }, 50);
   }
 }
 
