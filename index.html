@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RegattaFlow - Ειρήνης - Φιλίας 2026</title>
 <!-- RegattaHub MASTER race template -->
-<!-- PLATINUM CANDIDATE 01: EIO tab workflow + automatic return via Helper -->
+<!-- PLATINUM CANDIDATE 03: second captain uses the same EIO Helper workflow -->
 <!-- Race-specific values are injected by New Race Wizard -->
 
   <style>
@@ -953,9 +953,9 @@ height: 100dvh !important;
 <div id="addSecondCaptainBox" style="text-align:center; margin:18px 0 4px 0;">
   <button
     id="addSecondCaptainBtn"
-    class="btn secondary"
+    class="btn"
     type="button"
-    onclick="showSecondCaptain()"
+    onclick="startSecondCaptainEio()"
   >
     + ΠΡΟΣΘΗΚΗ ΔΕΥΤΕΡΟΥ ΚΥΒΕΡΝΗΤΗ
   </button>
@@ -966,28 +966,14 @@ height: 100dvh !important;
 >
   <strong>ΚΥΒΕΡΝΗΤΗΣ 2</strong><br>
 
-  <label style="font-weight:bold;">
-    Συμπληρώστε τον αριθμό αθλητικού δελτίου δεύτερου κυβερνήτη
-  </label><br>
-
-  <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:8px;">
+  <div style="display:none;">
     <input
       id="secondCaptainCardInput"
       type="text"
       inputmode="numeric"
-      placeholder="Αρ. δελτίου"
-      style="height:48px; width:220px; max-width:100%; font-size:18px; font-weight:700; text-align:center; color:#143a63; background:#fffdf2; border:2px solid #0d5e92; border-radius:7px; box-shadow:0 0 0 3px rgba(13,94,146,0.10); outline:none;"
+      readonly
+      aria-label="Αριθμός δελτίου δεύτερου κυβερνήτη από ΕΙΟ"
     >
-  </div>
-
-  <div style="text-align:center; margin:12px 0 14px 0;">
-    <button
-      class="btn"
-      type="button"
-      onclick="lookupPerson(document.getElementById('secondCaptainCardInput'))"
-    >
-      ΑΝΑΖΗΤΗΣΗ
-    </button>
   </div>
 
   <div class="personStatus" style="font-weight:bold; margin-bottom:6px;"></div>
@@ -2504,8 +2490,26 @@ if (continueAfterEioBtn) {
       }
     });
 
-function openEioAthleteRegistry() {
+function setEioImportTarget_(target) {
+  const normalized = target === "secondCaptain" ? "secondCaptain" : "captain";
+  window.RH_EIO_IMPORT_TARGET = normalized;
+  try {
+    sessionStorage.setItem("rhEioImportTarget", normalized);
+  } catch (_) {}
+}
+
+function getEioImportTarget_() {
+  if (window.RH_EIO_IMPORT_TARGET) return window.RH_EIO_IMPORT_TARGET;
+  try {
+    return sessionStorage.getItem("rhEioImportTarget") || "captain";
+  } catch (_) {
+    return "captain";
+  }
+}
+
+function openEioAthleteRegistry(target) {
   const eioUrl = "https://eio.gr/clubs/get_player.php";
+  setEioImportTarget_(target || "captain");
 
   // Με εγκατεστημένο Helper, η επέκταση ανοίγει/ενεργοποιεί την ΕΙΟ
   // και θυμάται ποια καρτέλα RegattaHub πρέπει να επαναφέρει.
@@ -2518,6 +2522,11 @@ function openEioAthleteRegistry() {
 
   // Ασφαλές fallback αν δεν έχει εγκατασταθεί ακόμη η επέκταση.
   window.open(eioUrl, "_blank", "noopener");
+}
+
+function startSecondCaptainEio() {
+  setEioImportTarget_("secondCaptain");
+  openEioAthleteRegistry("secondCaptain");
 }
 
 function showCrewScreen() {
@@ -2771,16 +2780,37 @@ function rhEioImport_(payload) {
       : "✓ Φορτώθηκαν " + records.length + " δελτία από την ΕΙΟ."
   );
 
-  // 1 δελτίο → αυτόματη συμπλήρωση Κυβερνήτη
+  // 1 δελτίο → στον Κυβερνήτη που ζήτησε ο χρήστης
   if (records.length === 1) {
-    const captainInput = document.getElementById("captainCardInput");
+    const importTarget = getEioImportTarget_();
+    const isSecondCaptain = importTarget === "secondCaptain";
+    const input = document.getElementById(
+      isSecondCaptain ? "secondCaptainCardInput" : "captainCardInput"
+    );
 
-    if (captainInput) {
-      captainInput.value = records[0].card || records[0].key || "";
+    if (input) {
+      input.value = records[0].card || records[0].key || "";
+
+      if (isSecondCaptain) {
+        const section = document.getElementById("secondCaptainSection");
+        const buttonBox = document.getElementById("addSecondCaptainBox");
+        if (section) section.style.display = "block";
+        if (buttonBox) buttonBox.style.display = "none";
+      }
 
       setTimeout(function () {
-        lookupPerson(captainInput);
-        captainInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        lookupPerson(input);
+
+        const scrollTarget = isSecondCaptain
+          ? document.getElementById("secondCaptainSection")
+          : input;
+
+        if (scrollTarget) {
+          scrollTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        // Επιστρέφουμε στον κανονικό στόχο για την επόμενη νέα αναζήτηση.
+        setEioImportTarget_("captain");
       }, 50);
     }
 
