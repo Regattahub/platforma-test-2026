@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RegattaFlow - Ειρήνης - Φιλίας 2026</title>
 <!-- RegattaHub MASTER race template -->
-<!-- PLATINUM CANDIDATE 03: second captain uses the same EIO Helper workflow -->
+<!-- PLATINUM CANDIDATE 04: crew uses EIO Helper only; no manual crew lookup -->
 <!-- Race-specific values are injected by New Race Wizard -->
 
   <style>
@@ -1012,21 +1012,23 @@ height: 100dvh !important;
   ΠΛΗΡΩΜΑ
 </div>
 
-  <div style="font-size:14px; margin:6px 0 10px 0;">
-    Μπορείτε είτε να βάλετε το/τα δελτία, στο πλαισιο που ακολουθεί, ένα-ένα, είτε να επικολλήσετε πολλούς αριθμούς μαζί και να πατήσετε <strong>ΑΝΑΖΗΤΗΣΗ ΟΛΩΝ</strong>.
+  <div style="font-size:14px; margin:6px 0 12px 0; text-align:center;">
+    Αναζητήστε τα δελτία του πληρώματος στο Μητρώο Αθλητών της ΕΙΟ.
+  </div>
+
+  <div style="text-align:center; margin:12px 0 14px 0;">
+    <button class="btn" type="button" onclick="startCrewEio()">
+      ΑΝΑΖΗΤΗΣΗ ΠΛΗΡΩΜΑΤΟΣ ΣΤΗΝ ΕΙΟ
+    </button>
   </div>
 
 <textarea
   id="bulkCrewCards"
-  placeholder="Αρ. δελτίων πληρώματος"
-  style="width:100%; height:105px; font-size:18px; font-weight:700; padding:12px; margin:8px 0 8px 0; font-family:Arial, sans-serif; color:#143a63; background:#fffdf2; border:2px solid #0d5e92; border-radius:7px; box-shadow:0 0 0 3px rgba(13,94,146,0.10); outline:none;"
+  readonly
+  aria-label="Δελτία πληρώματος που μεταφέρθηκαν από την ΕΙΟ"
+  placeholder="Τα δελτία από την ΕΙΟ θα εμφανιστούν εδώ"
+  style="width:100%; height:105px; font-size:18px; font-weight:700; padding:12px; margin:8px 0 8px 0; font-family:Arial, sans-serif; color:#143a63; background:#f4f6f7; border:2px solid #0d5e92; border-radius:7px; box-shadow:0 0 0 3px rgba(13,94,146,0.10); outline:none;"
 ></textarea>
-
- <div style="text-align:center; margin:14px 0 10px 0;">
-  <button class="btn" type="button" onclick="lookupBulkCrewCards()">
-    ΑΝΑΖΗΤΗΣΗ ΟΛΩΝ
-  </button>
-</div>
 
   <div style="display:none; font-size:13px; color:#5f5147; margin-bottom:10px;">
     Για μεμονωμένη προσθήκη, πατήστε το κουμπί <strong>+ Προσθήκη μέλους</strong>.
@@ -2160,7 +2162,7 @@ if (
       const crewRowsForCheck = getCrewPdfRows();
 
       if (crewRowsForCheck.length === 0) {
-       alert("Πρέπει να προστεθεί τουλάχιστον ένα μέλος πληρώματος.\n\nΒάλτε έναν ή περισσότερους αριθμούς στο πλαίσιο ΠΛΗΡΩΜΑ και πατήστε ΑΝΑΖΗΤΗΣΗ ΟΛΩΝ.");
+       alert("Πρέπει να προστεθεί τουλάχιστον ένα μέλος πληρώματος.\n\nΠατήστε ΑΝΑΖΗΤΗΣΗ ΠΛΗΡΩΜΑΤΟΣ ΣΤΗΝ ΕΙΟ και μεταφέρετε τα δελτία μέσω του RegattaHub Helper.");
 return;
       }
 const wosr1 = document.getElementById("wosrMember1")?.value || "";
@@ -2491,8 +2493,13 @@ if (continueAfterEioBtn) {
     });
 
 function setEioImportTarget_(target) {
-  const normalized = target === "secondCaptain" ? "secondCaptain" : "captain";
+  let normalized = "captain";
+
+  if (target === "secondCaptain") normalized = "secondCaptain";
+  if (target === "crew") normalized = "crew";
+
   window.RH_EIO_IMPORT_TARGET = normalized;
+
   try {
     sessionStorage.setItem("rhEioImportTarget", normalized);
   } catch (_) {}
@@ -2527,6 +2534,11 @@ function openEioAthleteRegistry(target) {
 function startSecondCaptainEio() {
   setEioImportTarget_("secondCaptain");
   openEioAthleteRegistry("secondCaptain");
+}
+
+function startCrewEio() {
+  setEioImportTarget_("crew");
+  openEioAthleteRegistry("crew");
 }
 
 function showCrewScreen() {
@@ -2760,79 +2772,164 @@ function rhEioImport_(payload) {
 
   const records = rhEioParse_(payload);
   RH_EIO_HELPER.records.clear();
+
   records.forEach(function (record) {
     RH_EIO_HELPER.records.set(record.key, record);
   });
+
   RH_EIO_HELPER.captureKey = key;
 
   if (!records.length) {
     alert(
       "Ο Helper παρέδωσε δεδομένα, αλλά δεν αναγνωρίστηκε κανένα δελτίο.\n\n" +
       "Στην ΕΙΟ κάντε πρώτα την αναζήτηση, περιμένετε να εμφανιστεί το αποτέλεσμα " +
-      "και μετά πατήστε «RegattaHub · Λήψη ΕΙΟ»."
+      "και μετά πατήστε «RegattaHub · ΜΕΤΑΦΟΡΑ ΣΤΟΝ ΑΓΩΝΑ»."
     );
     return;
   }
 
-  alert(
-    records.length === 1
-      ? "✓ Φορτώθηκε 1 δελτίο από την ΕΙΟ."
-      : "✓ Φορτώθηκαν " + records.length + " δελτία από την ΕΙΟ."
-  );
+  const importTarget = getEioImportTarget_();
 
-  // 1 δελτίο → στον Κυβερνήτη που ζήτησε ο χρήστης
-  if (records.length === 1) {
-    const importTarget = getEioImportTarget_();
-    const isSecondCaptain = importTarget === "secondCaptain";
-    const input = document.getElementById(
-      isSecondCaptain ? "secondCaptainCardInput" : "captainCardInput"
+  // ---------------------------------------------------------------
+  // ΠΛΗΡΩΜΑ: 1 ή περισσότερα δελτία.
+  // Όλα προέρχονται υποχρεωτικά από την ΕΙΟ.
+  // ---------------------------------------------------------------
+  if (importTarget === "crew") {
+    const captainCard = rhEioCardKey_(
+      document.getElementById("captainCardInput")?.value || ""
     );
 
-    if (input) {
-      input.value = records[0].card || records[0].key || "";
+    const secondCaptainCard = rhEioCardKey_(
+      document.getElementById("secondCaptainCardInput")?.value || ""
+    );
 
-      if (isSecondCaptain) {
-        const section = document.getElementById("secondCaptainSection");
-        const buttonBox = document.getElementById("addSecondCaptainBox");
-        if (section) section.style.display = "block";
-        if (buttonBox) buttonBox.style.display = "none";
-      }
+    const excludedCaptainCards = new Set(
+      [captainCard, secondCaptainCard].filter(Boolean)
+    );
 
-      setTimeout(function () {
-        lookupPerson(input);
+    const crewRecords = records.filter(function (record) {
+      const cardKey = rhEioCardKey_(record.card || record.key || "");
+      return cardKey && !excludedCaptainCards.has(cardKey);
+    });
 
-        const scrollTarget = isSecondCaptain
-          ? document.getElementById("secondCaptainSection")
-          : input;
+    const removedCaptains = records.length - crewRecords.length;
 
-        if (scrollTarget) {
-          scrollTarget.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-
-        // Επιστρέφουμε στον κανονικό στόχο για την επόμενη νέα αναζήτηση.
-        setEioImportTarget_("captain");
-      }, 50);
+    if (!crewRecords.length) {
+      alert(
+        removedCaptains
+          ? "Τα δελτία που μεταφέρθηκαν ανήκουν ήδη στους κυβερνήτες και δεν προστέθηκαν ξανά στο πλήρωμα."
+          : "Δεν βρέθηκαν έγκυρα δελτία πληρώματος."
+      );
+      return;
     }
 
+    const bulkCrew = document.getElementById("bulkCrewCards");
+    const crewSection = document.getElementById("crewSection");
+    const crewList = document.getElementById("crewList");
+    const continueBtn = document.getElementById("continueToJotformBtn");
+
+    if (crewSection) crewSection.style.display = "block";
+
+    if (bulkCrew) {
+      bulkCrew.value = crewRecords
+        .map(function (record) {
+          return record.card || record.key || "";
+        })
+        .filter(Boolean)
+        .join("\n");
+    }
+
+    if (crewList) crewList.innerHTML = "";
+    if (continueBtn) continueBtn.style.display = "none";
+
+    (async function () {
+      for (const record of crewRecords) {
+        addCrewMember();
+
+        const rows = document.querySelectorAll("#crewTable tbody tr");
+        const tr = rows[rows.length - 1];
+        const input = tr && tr.querySelector("input");
+
+        if (!input) continue;
+
+        input.value = record.card || record.key || "";
+        input.readOnly = true;
+
+        await lookupPerson(input);
+
+        const searchButton = tr.querySelector(".crewSearchBtn");
+        if (searchButton) searchButton.style.display = "none";
+      }
+
+      renumberCrewRows();
+      refreshWosrSelectors();
+
+      const foundRows = getCrewPdfRows();
+
+      if (continueBtn && foundRows.length > 0) {
+        continueBtn.style.display = "inline-block";
+      }
+
+      let message = "✓ Μεταφέρθηκαν " + crewRecords.length +
+                    (crewRecords.length === 1 ? " μέλος" : " μέλη") +
+                    " πληρώματος από την ΕΙΟ.";
+
+      if (removedCaptains > 0) {
+        message += "\nΟι κυβερνήτες εξαιρέθηκαν αυτόματα από το πλήρωμα.";
+      }
+
+      alert(message);
+
+      if (crewSection) {
+        crewSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    })();
+
     return;
   }
 
-  // 2+ δελτία → αυτόματη συμπλήρωση στο πεδίο ΠΛΗΡΩΜΑΤΟΣ, ένα ανά γραμμή
-  const bulkCrew = document.getElementById("bulkCrewCards");
-
-  if (bulkCrew) {
-    bulkCrew.value = records
-      .map(function (record) {
-        return record.card || record.key || "";
-      })
-      .filter(Boolean)
-      .join("\n");
-
-    setTimeout(function () {
-      bulkCrew.scrollIntoView({ behavior: "smooth", block: "center" });
-      bulkCrew.focus();
-    }, 50);
+  // ---------------------------------------------------------------
+  // ΚΥΒΕΡΝΗΤΗΣ / ΚΥΒΕΡΝΗΤΗΣ 2: απαιτείται ακριβώς ένα δελτίο.
+  // ---------------------------------------------------------------
+  if (records.length !== 1) {
+    alert(
+      "Για τον κυβερνήτη αναζητήστε στην ΕΙΟ ένα μόνο δελτίο και πατήστε ξανά " +
+      "«RegattaHub · ΜΕΤΑΦΟΡΑ ΣΤΟΝ ΑΓΩΝΑ»."
+    );
+    return;
   }
+
+  const isSecondCaptain = importTarget === "secondCaptain";
+
+  const input = document.getElementById(
+    isSecondCaptain ? "secondCaptainCardInput" : "captainCardInput"
+  );
+
+  if (!input) return;
+
+  input.value = records[0].card || records[0].key || "";
+
+  if (isSecondCaptain) {
+    const section = document.getElementById("secondCaptainSection");
+    const buttonBox = document.getElementById("addSecondCaptainBox");
+
+    if (section) section.style.display = "block";
+    if (buttonBox) buttonBox.style.display = "none";
+  }
+
+  setTimeout(function () {
+    lookupPerson(input);
+
+    const scrollTarget = isSecondCaptain
+      ? document.getElementById("secondCaptainSection")
+      : input;
+
+    if (scrollTarget) {
+      scrollTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    setEioImportTarget_("captain");
+  }, 50);
 }
 
 document.addEventListener("regattahub:eio-data", function (event) {
@@ -2879,8 +2976,8 @@ async function lookupPerson(input) {
       "Δεν έχουν φορτωθεί ακόμη δεδομένα ΕΙΟ.\n\n" +
       "1. Ανοίξτε το Μητρώο Αθλητών της ΕΙΟ.\n" +
       "2. Αναζητήστε το δελτίο ή τα δελτία.\n" +
-      "3. Πατήστε «RegattaHub · Λήψη ΕΙΟ».\n" +
-      "4. Επιστρέψτε εδώ και πατήστε «ΕΙΟ → RegattaHub»."
+      "3. Πατήστε «RegattaHub · ΜΕΤΑΦΟΡΑ ΣΤΟΝ ΑΓΩΝΑ».\n" +
+      "4. Η επιστροφή στο RegattaHub γίνεται αυτόματα."
     );
     return;
   }
@@ -3005,20 +3102,13 @@ function addCrewMember() {
   tr.innerHTML = `
     <td class="rowNo" style="border:1px solid #bfb6aa; padding:6px; text-align:center;"></td>
     <td style="border:1px solid #bfb6aa; padding:6px;">
- <input type="text" placeholder="19012" oninput="updateCrewMemberSearchButton(this)" style="width:75px; height:36px; font-size:16px; text-align:center;">
+ <input type="text" placeholder="19012" readonly aria-label="Δελτίο μέλους από ΕΙΟ" style="width:75px; height:36px; font-size:16px; text-align:center; background:#f4f6f7;">
       <div class="personStatus" style="font-weight:bold; margin-top:6px; font-size:12px;"></div>
     </td>
     <td style="border:1px solid #bfb6aa; padding:6px;"><span class="name"></span></td>
     <td style="border:1px solid #bfb6aa; padding:6px;"><span class="club"></span></td>
    <td style="border:1px solid #bfb6aa; padding:6px; text-align:center;">
 <button type="button"
-       class="crewSearchBtn memberSearchBtn"
-        onclick="lookupPerson(this.closest('tr').querySelector('input'))"
-        style="background:#f1f4ef; color:#2f241d; border:1px solid #bfb6aa; padding:6px 8px; font-weight:bold; cursor:pointer; font-size:12px; white-space:nowrap;">
-  🔍 ΑΝΑΖΗΤΗΣΗ ΜΕΛΟΥΣ
-</button>
-
- <button type="button"
         onclick="deleteCrewRow(this)"
         style="color:#b00020; background:#fff; border:1px solid #bfb6aa; padding:6px 8px; font-weight:bold; cursor:pointer; font-size:12px; white-space:nowrap; margin-top:4px;">
   ✖ ΔΙΑΓΡΑΦΗ
