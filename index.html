@@ -6,6 +6,7 @@
 <title>RegattaFlow - ΠΛΑΤΦΟΡΜΑ TEST 2026</title>
 <!-- RegattaHub MASTER race template -->
 <!-- Race-specific values are injected by New Race Wizard -->
+<!-- TEST: EIO Helper local lookup bridge v2 - 04/10/2026 -->
 
   <style>
     * {
@@ -829,27 +830,6 @@ height: 100dvh !important;
         id="orcReferenceValue"
         style="font-size:22px; font-weight:800; letter-spacing:1px; padding:0 90px;"
       ></div>
-
-      <button
-        id="copyOrcReferenceBtn"
-        type="button"
-        onclick="copyOrcReference()"
-        style="
-          margin-top:9px;
-          min-width:150px;
-          height:38px;
-          padding:0 16px;
-          border:none;
-          border-radius:5px;
-          background:#4d8b1f;
-          color:#fff;
-          font-size:14px;
-          font-weight:800;
-          cursor:pointer;
-        "
-      >
-        ΑΝΤΙΓΡΑΦΗ
-      </button>
     </div>
 
     <div
@@ -866,19 +846,6 @@ height: 100dvh !important;
     >
       Επικολλήστε το ORC Reference όταν σας ζητηθεί στη φόρμα της ΕΙΟ.
     </div>
-  </div>
-
-  <div
-    style="
-      max-width:760px;
-      margin:0 auto 10px auto;
-      text-align:center;
-      font-size:13px;
-      line-height:1.45;
-      color:#5f5147;
-    "
-  >
-    Η δήλωση πληρώματος πραγματοποιείται στην εφαρμογή της Ελληνικής Ιστιοπλοϊκής Ομοσπονδίας (ΕΙΟ/ΕΑΘ), η οποία προβάλλεται εδώ για τη διευκόλυνση του χρήστη.
   </div>
 
   <iframe
@@ -1106,7 +1073,7 @@ height: 100dvh !important;
     // =========================================
 
 const SETTINGS_WEB_APP_URL =
-  "https://script.google.com/macros/s/AKfycbzlAUytmKnOikHlz2ayIjCrhtAOyS0SviGrIvsCduRPj2hfUJNuTG0zikLIP_kUoLvb8A/exec";
+  "https://script.google.com/macros/s/AKfycbwZHkHtIf_wc9cMTh51gOUidUjBQ1b2-1JjmlZbUPzlfO1GnYpJ76lRIP0x2Gak_G52/exec";
 
 // Το αρχείο ΣΥΜΜΕΤΟΧΕΣ / ΡΥΘΜΙΣΕΙΣ του συγκεκριμένου αγώνα.
 const DEFAULT_SETTINGS_SPREADSHEET_ID =
@@ -1343,10 +1310,8 @@ function applyRaceSettingsData(data) {
 
   const jotformId =
     data.jotformFormId || data.jotformId || CONFIG.JOTFORM_FORM_ID;
-const jotformUrl =
-  data.jotformFormUrl ||
-  data.jotformUrl ||
-  (jotformId ? "https://form.jotform.com/" + jotformId : CONFIG.JOTFORM_BASE_URL);
+  const jotformUrl =
+    data.jotformFormUrl || data.jotformUrl || CONFIG.JOTFORM_BASE_URL;
 
   CONFIG.JOTFORM_FORM_ID = String(jotformId || "").trim();
   CONFIG.JOTFORM_BASE_URL = normalizeJotformUrl(
@@ -2332,60 +2297,7 @@ const boatLookupWarmup =
 
     searchBtn.addEventListener("click", searchBoat);
 
-function copyOrcReference() {
-  const valueEl = document.getElementById("orcReferenceValue");
-  const button = document.getElementById("copyOrcReferenceBtn");
-  const value = valueEl ? String(valueEl.textContent || "").trim() : "";
-
-  if (!value) return;
-
-  function showCopied() {
-    if (!button) return;
-    button.textContent = "ΑΝΤΙΓΡΑΦΗΚΕ ✓";
-    window.setTimeout(function () {
-      if (button) button.textContent = "ΑΝΤΙΓΡΑΦΗ";
-    }, 1800);
-  }
-
-  function fallbackCopy() {
-    const temp = document.createElement("textarea");
-    temp.value = value;
-    temp.setAttribute("readonly", "");
-    temp.style.position = "fixed";
-    temp.style.left = "-9999px";
-    temp.style.opacity = "0";
-    document.body.appendChild(temp);
-    temp.select();
-    temp.setSelectionRange(0, temp.value.length);
-
-    try {
-      document.execCommand("copy");
-      showCopied();
-    } catch (error) {
-      alert("Δεν ήταν δυνατή η αυτόματη αντιγραφή. Επιλέξτε τον κωδικό χειροκίνητα.");
-    }
-
-    document.body.removeChild(temp);
-  }
-
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(value)
-      .then(showCopied)
-      .catch(fallbackCopy);
-  } else {
-    fallbackCopy();
-  }
-}
-
-const USE_EIO_FLOW = false;
-
 continueBtn.addEventListener("click", function () {
-
-  if (!USE_EIO_FLOW) {
-    showCrewScreen();
-    return;
-  }
-
   document.getElementById("eioTestWrap").style.display = "block";
   document.getElementById("eioConfirmBox").style.display = "block";
 
@@ -2870,6 +2782,270 @@ function loadCrewFromJson(crewJson) {
     addCrewMemberFromData(member);
   });
 }
+
+
+/* ============================================================
+   RegattaHub EIO Helper bridge - LOCAL LOOKUP TEST v2
+   - Δεν καλεί την ΕΙΟ από το RegattaHub.
+   - Παίρνει HTML/text που παραδίδει το browser Helper.
+   - Δημιουργεί προσωρινό τοπικό ευρετήριο δελτίων.
+   - Τα υπάρχοντα κουμπιά ΑΝΑΖΗΤΗΣΗ / ΑΝΑΖΗΤΗΣΗ ΟΛΩΝ
+     χρησιμοποιούν το τοπικό ευρετήριο.
+   ============================================================ */
+
+const REGATTAHUB_EIO_LOCAL = {
+  records: new Map(),
+  lastCaptureKey: "",
+  lastCapturedAt: "",
+  sourceUrl: ""
+};
+
+function rhEioNorm_(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[\s:：.\-]/g, "");
+}
+
+function rhEioText_(value) {
+  return String(value || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function rhEioCardKey_(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.replace(/^0+/, "") || digits;
+}
+
+function rhEioGetField_(recordEl, labels) {
+  const wanted = new Set(labels.map(rhEioNorm_));
+  const ps = Array.from(recordEl.querySelectorAll("p"));
+
+  for (const p of ps) {
+    const strong = p.querySelector("strong");
+    if (!strong) continue;
+
+    const label = rhEioNorm_(strong.textContent);
+    if (!wanted.has(label)) continue;
+
+    const clone = p.cloneNode(true);
+    const strongClone = clone.querySelector("strong");
+    if (strongClone) strongClone.remove();
+
+    return {
+      text: rhEioText_(clone.textContent),
+      html: clone.innerHTML || ""
+    };
+  }
+
+  return { text: "", html: "" };
+}
+
+function rhEioParsePayload_(payload) {
+  const rawHtml = String(payload?.html || "");
+  if (!rawHtml.trim()) {
+    return { ok: false, error: "EMPTY_CAPTURE", records: [] };
+  }
+
+  const doc = new DOMParser().parseFromString(rawHtml, "text/html");
+  const recordEls = Array.from(doc.querySelectorAll(".single-record"));
+
+  if (!recordEls.length) {
+    const bodyText = rhEioText_(doc.body?.innerText || doc.body?.textContent || payload?.text || "");
+    if (/Δεν\s+βρέθηκαν\s+αποτελέσματα/i.test(bodyText)) {
+      return { ok: true, records: [] };
+    }
+    return { ok: false, error: "NO_RECORDS_FOUND", records: [] };
+  }
+
+  const records = [];
+
+  for (const el of recordEls) {
+    const card = rhEioGetField_(el, [
+      "Αριθμός Μητρώου", "Αριθμός Δελτίου", "ΑΜ", "Α.Μ.", "AM"
+    ]).text;
+
+    const surname = rhEioGetField_(el, ["Επώνυμο", "Surname"]).text;
+    const firstName = rhEioGetField_(el, ["Όνομα", "Name"]).text;
+    const club = rhEioGetField_(el, ["Όμιλος", "Σωματείο", "Club"]).text;
+    const statusField = rhEioGetField_(el, [
+      "Κατάσταση Δελτίου", "Κατάσταση", "Status"
+    ]);
+
+    const statusText = rhEioText_(statusField.text);
+    const statusHtml = String(statusField.html || "");
+    const active =
+      /\bactive\b/i.test(statusText) ||
+      /class\s*=\s*["'][^"']*\bactive\b/i.test(statusHtml);
+
+    const expired =
+      /\bexpired\b/i.test(statusText) ||
+      /class\s*=\s*["'][^"']*\bexpired\b/i.test(statusHtml);
+
+    const key = rhEioCardKey_(card);
+    if (!key || !surname || !firstName) continue;
+
+    records.push({
+      card: String(card || "").replace(/[^\d]/g, ""),
+      key,
+      name: rhEioText_(surname + " " + firstName),
+      club: rhEioText_(club),
+      status: active ? "Active" : (expired ? "No valid" : statusText || "Unknown"),
+      active: active
+    });
+  }
+
+  return { ok: true, records };
+}
+
+function rhEioImportPayload_(payload) {
+  const captureKey = String(payload?.capturedAt || "") + "|" + String(payload?.pageUrl || "");
+  if (captureKey && captureKey === REGATTAHUB_EIO_LOCAL.lastCaptureKey) return;
+
+  const parsed = rhEioParsePayload_(payload);
+
+  if (!parsed.ok) {
+    console.warn("RegattaHub EIO Helper: αδυναμία ανάγνωσης δεδομένων", parsed.error);
+    alert(
+      "Τα δεδομένα έφτασαν από τον Helper, αλλά δεν αναγνωρίστηκαν δελτία.\n" +
+      "Κάντε πρώτα αναζήτηση στη σελίδα Μητρώου Αθλητών της ΕΙΟ και μετά πατήστε «RegattaHub · Λήψη ΕΙΟ»."
+    );
+    return;
+  }
+
+  REGATTAHUB_EIO_LOCAL.records.clear();
+
+  parsed.records.forEach((record) => {
+    REGATTAHUB_EIO_LOCAL.records.set(record.key, record);
+  });
+
+  REGATTAHUB_EIO_LOCAL.lastCaptureKey = captureKey;
+  REGATTAHUB_EIO_LOCAL.lastCapturedAt = String(payload?.capturedAt || "");
+  REGATTAHUB_EIO_LOCAL.sourceUrl = String(payload?.pageUrl || "");
+
+  const count = REGATTAHUB_EIO_LOCAL.records.size;
+
+  if (!count) {
+    alert("Ο Helper παρέδωσε τη σελίδα της ΕΙΟ, αλλά δεν βρέθηκαν αποτελέσματα.");
+    return;
+  }
+
+  const msg =
+    count === 1
+      ? "✓ Φορτώθηκε 1 δελτίο από την ΕΙΟ."
+      : "✓ Φορτώθηκαν " + count + " δελτία από την ΕΙΟ.";
+
+  console.log("RegattaHub EIO Helper:", msg, Array.from(REGATTAHUB_EIO_LOCAL.records.values()));
+
+  // Αν ο χρήστης έχει ήδη γράψει δελτίο κυβερνήτη, το αναζητούμε αυτόματα.
+  const captainInput = document.getElementById("captainCardInput");
+  if (captainInput && captainInput.value.trim()) {
+    lookupPerson(captainInput);
+  }
+
+  // Αν υπάρχουν ήδη δελτία πληρώματος στο textarea, αναζητούνται αυτόματα.
+  const bulk = document.getElementById("bulkCrewCards");
+  if (bulk && bulk.value.trim()) {
+    lookupBulkCrewCards();
+  }
+
+  alert(msg + "\nΤώρα οι αναζητήσεις γίνονται τοπικά, χωρίς νέα σύνδεση στην ΕΙΟ.");
+}
+
+document.addEventListener("regattahub:eio-data", function (event) {
+  rhEioImportPayload_(event.detail || {});
+});
+
+window.addEventListener("message", function (event) {
+  if (event.origin !== window.location.origin) return;
+  if (!event.data || event.data.source !== "REGATTAHUB_EIO_HELPER") return;
+  if (event.data.type !== "EIO_CAPTURE") return;
+  rhEioImportPayload_(event.data.payload || {});
+});
+
+/* OVERRIDE της υπάρχουσας lookupPerson:
+   ίδια οθόνη/ίδια κουμπιά, αλλά η αναζήτηση είναι 100% τοπική. */
+async function lookupPerson(input) {
+  const id = String(input?.value || "").trim();
+  if (!id) return;
+
+  const row = input.parentElement?.parentElement;
+  if (!row) return;
+
+  const nameEl = row.querySelector(".name");
+  const clubEl = row.querySelector(".club");
+  const cardEl = row.querySelector(".cardNumber");
+  const statusEl = row.querySelector(".personStatus");
+
+  if (nameEl) nameEl.innerText = "";
+  if (clubEl) clubEl.innerText = "";
+  if (cardEl) cardEl.innerText = "";
+
+  if (statusEl) {
+    statusEl.innerText = "Γίνεται τοπική αναζήτηση…";
+    statusEl.style.color = "#5f5147";
+  }
+
+  const key = rhEioCardKey_(id);
+
+  if (!REGATTAHUB_EIO_LOCAL.records.size) {
+    if (statusEl) {
+      statusEl.innerText = "✖ Δεν έχουν φορτωθεί ακόμη δεδομένα ΕΙΟ.";
+      statusEl.style.color = "#b00020";
+    }
+    alert(
+      "Δεν έχουν φορτωθεί δεδομένα από την ΕΙΟ.\n\n" +
+      "1. Ανοίξτε το Μητρώο Αθλητών της ΕΙΟ.\n" +
+      "2. Αναζητήστε το/τα δελτία.\n" +
+      "3. Πατήστε «RegattaHub · Λήψη ΕΙΟ».\n" +
+      "4. Επιστρέψτε εδώ και πατήστε «ΕΙΟ → RegattaHub»."
+    );
+    return;
+  }
+
+  const record = REGATTAHUB_EIO_LOCAL.records.get(key);
+
+  if (!record) {
+    if (nameEl) nameEl.innerText = "Δεν βρέθηκε";
+    if (clubEl) clubEl.innerText = "";
+    if (statusEl) {
+      statusEl.innerText =
+        "✖ Το δελτίο " + id + " δεν υπάρχει στα δεδομένα ΕΙΟ που φορτώθηκαν.";
+      statusEl.style.color = "#b00020";
+    }
+    return;
+  }
+
+  if (nameEl) nameEl.innerText = record.name || "";
+  if (clubEl) clubEl.innerText = shortClubName(record.club || "");
+  if (cardEl) cardEl.innerText = record.card || id;
+
+  if (!record.active && record.status && record.status !== "Unknown") {
+    if (statusEl) {
+      statusEl.innerText = "⚠ Βρέθηκε — κατάσταση δελτίου: " + record.status;
+      statusEl.style.color = "#b00020";
+    }
+  } else if (statusEl) {
+    statusEl.innerText = "✔ Βρέθηκε στα ενημερωμένα δεδομένα ΕΙΟ";
+    statusEl.style.color = "#2e7d32";
+  }
+
+  const crewSectionEl = document.getElementById("crewSection");
+  if (crewSectionEl && input.closest("#crewScreen")) {
+    crewSectionEl.style.display = "block";
+
+    if (input.closest("#crewTable")) {
+      const cont = document.getElementById("continueToJotformBtn");
+      if (cont) cont.style.display = "inline-block";
+    }
+  }
+
+  refreshWosrSelectors();
+}
+
 </script>
 </body>
 </html>
