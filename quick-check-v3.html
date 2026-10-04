@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b4f86">
+<title>RegattaHub Quick Check</title>
+<style>
+:root{--blue:#0b4f86;--blue2:#176aa0;--green:#1f8f52;--ink:#17324a;--muted:#65788a;--line:#d8e3ea;--soft:#f7fbfd;--warn:#fff7df}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#e8f1f6,#f8fbfd);color:var(--ink)}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px} .card{width:min(820px,100%);background:white;border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 50px rgba(26,64,90,.16);overflow:hidden}
+.head{background:linear-gradient(135deg,var(--blue),var(--blue2));color:white;padding:24px;text-align:center} .logo{width:64px;height:64px;margin:0 auto 10px;border-radius:16px;background:white;color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px}
+h1{margin:0;font-size:30px} .sub{opacity:.92;margin-top:5px} .body{padding:26px 34px 34px}
+.rolebar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px} .role{flex:1;min-width:160px;border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:12px;font-weight:800;cursor:pointer;color:var(--ink)} .role.active{background:var(--blue);color:white;border-color:var(--blue)}
+label{font-weight:800;display:block;margin-bottom:8px} textarea{width:100%;height:110px;padding:14px;border:2px solid var(--blue);border-radius:10px;font-size:19px;font-weight:700;color:var(--ink);background:#fffef5;resize:vertical}
+.actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px} .btn{border:0;border-radius:10px;padding:15px 18px;font-size:16px;font-weight:900;cursor:pointer;text-decoration:none;text-align:center} .primary{background:var(--green);color:white} .secondary{background:var(--blue);color:white} .ghost{background:var(--soft);color:var(--blue);border:1px solid var(--line)}
+.status{margin-top:20px;border-radius:12px;padding:15px 17px;background:var(--soft);border:1px solid var(--line)} .status.wait{background:var(--warn)} .status.ok{background:#f2fbf6;border-color:#b9e3ca}
+.results{margin-top:18px;display:none} table{width:100%;border-collapse:collapse;font-size:14px} th,td{border:1px solid var(--line);padding:9px 8px;text-align:left} th{background:#eef5f8}
+.firstuse{margin-top:22px;padding:16px;border:1px dashed #aab9c5;border-radius:12px;background:#fcfdfe} .firstuse summary{font-weight:800;cursor:pointer} .bookmark{display:inline-block;margin:12px 0 2px;padding:12px 16px;border-radius:9px;background:var(--green);color:white;text-decoration:none;font-weight:900}
+.small{font-size:13px;line-height:1.45;color:var(--muted)} .hidden{display:none!important}
+@media(max-width:640px){.wrap{padding:0}.card{min-height:100vh;border-radius:0;border:0}.body{padding:22px 16px 28px}h1{font-size:25px}.rolebar{display:grid;grid-template-columns:1fr}table{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="wrap"><main class="card">
+<header class="head">
+<div class="logo">RH</div>
+<h1>RegattaHub Quick Check</h1>
+<div class="sub">Έλεγχος δελτίων ΕΙΟ · δοκιμαστική γέφυρα</div>
+</header>
+<section class="body">
+<div class="rolebar">
+<button class="role active" data-role="captain">ΚΥΒΕΡΝΗΤΗΣ</button>
+<button class="role" data-role="secondCaptain">ΚΥΒΕΡΝΗΤΗΣ 2</button>
+<button class="role" data-role="crew">ΠΛΗΡΩΜΑ</button>
+</div>
+
+<label for="cards">Αριθμός/οί Μητρώου ΕΙΟ</label>
+<textarea id="cards" placeholder="π.χ. 19012 ή 15010, 19012"></textarea>
+
+<div class="actions">
+<button id="openEio" class="btn primary">ΕΛΕΓΧΟΣ ΣΤΗΝ ΕΙΟ</button>
+</div>
+
+<div id="status" class="status">
+<b>1.</b> Γράψτε τον ΑΜ ή τους ΑΜ.<br>
+<b>2.</b> Πατήστε «ΕΛΕΓΧΟΣ ΣΤΗΝ ΕΙΟ».<br>
+<b>3.</b> Στην ΕΙΟ κάντε επικόλληση, Αναζήτηση και πατήστε το αγαπημένο «RegattaHub · Μεταφορά».
+</div>
+
+<div id="results" class="results">
+<h2>Αποτελέσματα ΕΙΟ</h2>
+<table>
+<thead><tr><th>ΑΜ</th><th>Ονοματεπώνυμο</th><th>Όμιλος</th><th>Κατάσταση</th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+<div class="actions">
+<button id="sendBack" class="btn secondary">ΣΥΝΕΧΕΙΑ ΣΤΟ REGATTAHUB</button>
+</div>
+</div>
+
+<details class="firstuse">
+<summary>Πρώτη χρήση μόνο — προσθήκη «RegattaHub · Μεταφορά» στα Αγαπημένα</summary>
+<p class="small">Στον υπολογιστή, σύρετε ολόκληρο το πράσινο κουμπί «RegattaHub · Μεταφορά» στη γραμμή Αγαπημένων. Αυτό γίνεται μόνο μία φορά.</p>
+<a class="bookmark" id="rhBookmarklet" href="javascript:(()=&gt;{try{ if(!/^https:\/\/(www\.)?eio\.gr\//i.test(location.href)){alert(&quot;Ανοίξτε πρώτα το Μητρώο Αθλητών της ΕΙΟ.&quot;);return;} if(!window.opener||window.opener.closed){alert(&quot;Ανοίξτε την ΕΙΟ από το RegattaHub Quick Check και μετά πατήστε ξανά «RegattaHub · Μεταφορά».&quot;);return;} const clean=s=&gt;String(s||&quot;&quot;).replace(/\u00a0/g,&quot; &quot;).replace(/[ \t]+\n/g,&quot;\n&quot;).replace(/\n{3,}/g,&quot;\n\n&quot;).trim(); const payload={schema:3,source:&quot;EIO_BOOKMARKLET&quot;,pageUrl:location.href,pageTitle:document.title,capturedAt:new Date().toISOString(),text:clean(document.body?.innerText||&quot;&quot;),html:document.documentElement?.outerHTML||&quot;&quot;}; window.opener.postMessage({source:&quot;REGATTAHUB_EIO_BOOKMARKLET&quot;,type:&quot;EIO_CAPTURE&quot;,payload},&quot;*&quot;); try{window.opener.focus();}catch(e){} alert(&quot;✓ Τα στοιχεία στάλθηκαν στο RegattaHub Quick Check.&quot;); }catch(e){alert(&quot;Δεν ολοκληρώθηκε η μεταφορά. &quot;+(e&amp;&amp;e.message?e.message:e));}})();">RegattaHub · Μεταφορά</a>
+<p class="small"><b>Προσοχή:</b> μην πατήσετε το πράσινο κουμπί εδώ. Σύρετέ το με το ποντίκι επάνω στη γραμμή Αγαπημένων.</p>
+</details>
+
+<p class="small">TEST v3: πρώτα αποδεικνύουμε ότι η σελίδα θυμάται τον ρόλο, ανοίγει την ΕΙΟ και παραλαμβάνει σωστά τα αποτελέσματα. Μετά τη συνδέουμε απευθείας με τη φόρμα αγώνα.</p>
+</section>
+</main></div>
+
+<script>
+(() => {
+  let role = new URLSearchParams(location.search).get("target") || "captain";
+  let latest = null;
+  let eioWindow = null;
+
+  const cards = document.getElementById("cards");
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
+  const tbody = document.getElementById("tbody");
+
+  function setRole(next) {
+    role = ["captain","secondCaptain","crew"].includes(next) ? next : "captain";
+    document.querySelectorAll(".role").forEach(b => b.classList.toggle("active", b.dataset.role === role));
+    try { sessionStorage.setItem("rhQuickRole", role); } catch(_) {}
+  }
+
+  document.querySelectorAll(".role").forEach(b => b.addEventListener("click", () => setRole(b.dataset.role)));
+  try {
+    const saved = sessionStorage.getItem("rhQuickRole");
+    if (!new URLSearchParams(location.search).get("target") && saved) role = saved;
+  } catch(_) {}
+  setRole(role);
+
+  function normalizeCards(text) {
+    return [...new Set(String(text||"").split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean))];
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch(_) {
+      const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch(e) {}
+      ta.remove(); return false;
+    }
+  }
+
+  document.getElementById("openEio").addEventListener("click", async () => {
+    const ids = normalizeCards(cards.value);
+    if (!ids.length) { alert("Γράψτε πρώτα έναν ή περισσότερους ΑΜ ΕΙΟ."); cards.focus(); return; }
+
+    await copyText(ids.join(","));
+    try {
+      sessionStorage.setItem("rhQuickCards", JSON.stringify(ids));
+      sessionStorage.setItem("rhQuickRole", role);
+    } catch(_) {}
+
+    eioWindow = window.open("https://eio.gr/clubs/get_player.php", "rhEioQuickCheck");
+    if (!eioWindow) {
+      alert("Ο browser εμπόδισε το άνοιγμα της ΕΙΟ. Επιτρέψτε τα αναδυόμενα παράθυρα και δοκιμάστε ξανά.");
+      return;
+    }
+    status.className = "status wait";
+    status.innerHTML = "<b>Οι ΑΜ αντιγράφηκαν.</b><br>Στην ΕΙΟ πατήστε μέσα στο πεδίο → Επικόλληση → Αναζήτηση → «RegattaHub · Μεταφορά».";
+  });
+
+  function parsePayload(payload) {
+    const out = [];
+    const seen = new Set();
+
+    function clean(v) {
+      return String(v || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    }
+
+    function addRecord(record) {
+      const card = clean(record.card).replace(/\D/g, "");
+      if (!card || seen.has(card)) return;
+
+      seen.add(card);
+      out.push({
+        card,
+        surname: clean(record.surname),
+        firstName: clean(record.firstName),
+        club: clean(record.club),
+        status: clean(record.status)
+      });
+    }
+
+    // A. Πολλαπλά αποτελέσματα ΕΙΟ σε πίνακα.
+    try {
+      const doc = new DOMParser().parseFromString(payload.html || "", "text/html");
+
+      doc.querySelectorAll("table tbody tr, table tr").forEach(tr => {
+        const cells = [...tr.querySelectorAll("td")].map(td => clean(td.textContent));
+        if (cells.length < 6) return;
+
+        addRecord({
+          card: cells[0],
+          surname: cells[1],
+          firstName: cells[2],
+          club: cells[5],
+          status: cells[cells.length - 1]
+        });
+      });
+
+      // B. Μονό αποτέλεσμα: διαβάζουμε το εμφανιζόμενο κείμενο της κάρτας.
+      if (!out.length) {
+        const text = String(payload.text || doc.body?.innerText || doc.body?.textContent || "")
+          .replace(/\u00a0/g, " ")
+          .replace(/\r/g, "");
+
+        const pick = (label, nextLabels) => {
+          const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const stop = nextLabels
+            .map(x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+            .join("|");
+
+          const re = new RegExp(
+            escaped + "\\s*:?\\s*([\\s\\S]*?)(?=\\n\\s*(?:" + stop + ")\\s*:|$)",
+            "i"
+          );
+
+          const m = text.match(re);
+          return m ? clean(m[1]) : "";
+        };
+
+        const card = pick("ΑΜ", [
+          "Επώνυμο","Όνομα","Πατρώνυμο","Ημ/νία Γέννησης",
+          "Ημ/νία Ανανέωσης","Ημ/νία Λήξης","Κατάσταση Δελτίου","Όμιλος"
+        ]);
+
+        const surname = pick("Επώνυμο", [
+          "Όνομα","Πατρώνυμο","Ημ/νία Γέννησης","Ημ/νία Ανανέωσης",
+          "Ημ/νία Λήξης","Κατάσταση Δελτίου","Όμιλος"
+        ]);
+
+        const firstName = pick("Όνομα", [
+          "Πατρώνυμο","Ημ/νία Γέννησης","Ημ/νία Ανανέωσης",
+          "Ημ/νία Λήξης","Κατάσταση Δελτίου","Όμιλος"
+        ]);
+
+        const status =
+          pick("Κατάσταση Δελτίου", ["Όμιλος"]) ||
+          pick("Κατάσταση", ["Όμιλος"]);
+
+        const club = pick("Όμιλος", []);
+
+        addRecord({ card, surname, firstName, club, status });
+      }
+
+      // C. Τελευταίο fallback για τη σημερινή μορφή της σελίδας.
+      if (!out.length) {
+        const text = clean(payload.text || doc.body?.textContent || "");
+        const cardMatch = text.match(/\bΑΜ\s*:?\s*(\d{3,})\b/i);
+        const surnameMatch = text.match(/Επώνυμο\s*:?\s*([Α-ΩΆΈΉΊΌΎΏΪΫA-Z-]+)/i);
+        const firstMatch = text.match(/Όνομα\s*:?\s*([Α-ΩΆΈΉΊΌΎΏΪΫA-Z-]+)/i);
+        const clubMatch = text.match(/Όμιλος\s*:?\s*(.+)$/i);
+
+        if (cardMatch) {
+          addRecord({
+            card: cardMatch[1],
+            surname: surnameMatch ? surnameMatch[1] : "",
+            firstName: firstMatch ? firstMatch[1] : "",
+            club: clubMatch ? clubMatch[1] : "",
+            status: /\bActive\b/i.test(text) ? "Active" : ""
+          });
+        }
+      }
+    } catch (_) {}
+
+    return out;
+  }
+
+  window.addEventListener("message", ev => {
+    if (ev.origin !== "https://eio.gr" && ev.origin !== "https://www.eio.gr") return;
+    const d=ev.data||{};
+    if(d.source!=="REGATTAHUB_EIO_BOOKMARKLET" || d.type!=="EIO_CAPTURE") return;
+
+    const records=parsePayload(d.payload||{});
+    latest={ role, payload:d.payload||{}, records };
+    tbody.innerHTML="";
+    records.forEach(r=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML="<td>"+r.card+"</td><td>"+[r.surname,r.firstName].filter(Boolean).join(" ")+"</td><td>"+r.club+"</td><td>"+r.status+"</td>";
+      tbody.appendChild(tr);
+    });
+
+    if(!records.length) {
+      status.className="status wait";
+      status.innerHTML="<b>Η ΕΙΟ απάντησε, αλλά δεν αναγνωρίστηκαν δελτία.</b><br>Ελέγξτε ότι τα αποτελέσματα είχαν εμφανιστεί πριν πατήσετε «RegattaHub · Μεταφορά».";
+      return;
+    }
+
+    status.className="status ok";
+    status.innerHTML="<b>✓ Παραλήφθηκαν "+records.length+" δελτί"+(records.length===1?"ο":"α")+" από την ΕΙΟ.</b><br>Η γέφυρα λειτουργεί.";
+    results.style.display="block";
+    results.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+
+  document.getElementById("sendBack").addEventListener("click", () => {
+    if(!latest) return;
+    if(window.opener && !window.opener.closed) {
+      window.opener.postMessage({source:"REGATTAHUB_QUICKCHECK",type:"EIO_RESULT",target:latest.role,payload:latest.payload,records:latest.records},"*");
+      try{window.opener.focus();}catch(_){}
+      status.className="status ok";
+      status.innerHTML="<b>✓ Τα στοιχεία στάλθηκαν στο RegattaHub.</b>";
+    } else {
+      alert("Η δοκιμή της γέφυρας ολοκληρώθηκε. Στο επόμενο βήμα θα συνδεθεί απευθείας με τη φόρμα RegattaHub.");
+    }
+  });
+})();
+</script>
+</body>
+</html>
