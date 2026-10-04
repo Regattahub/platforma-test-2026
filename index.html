@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>RegattaFlow - ΠΛΑΤΦΟΡΜΑ TEST 2026</title>
+<title>RegattaFlow - Ειρήνης - Φιλίας 2026</title>
 <!-- RegattaHub MASTER race template -->
+<!-- TEST COPY built from verified-working VATHY index; VATHY source untouched -->
 <!-- Race-specific values are injected by New Race Wizard -->
-<!-- TEST CLEAN HELPER v3: no embedded EIO form; local lookup via browser Helper -->
 
   <style>
     * {
@@ -762,7 +762,7 @@ height: 100dvh !important;
           Για να συνεχίσετε θα πρέπει να έχετε πιστοποιητικό της Εθνικής Αρχής για το έτος 2026.
         </div>
         <div class="line5" id="noticeInfoText">
-          Για πληροφορίες: ΓΡΑΜΜΑΤΕΙΑ ΑΓΩΝΑ ΤΗΛ.: 210 4101113
+          Για πληροφορίες: ΓΡΑΜΜΑΤΕΙΑ ΑΓΩΝΑ ΤΗΛ.: 210 4222782
         </div>
       </div>
 
@@ -777,12 +777,143 @@ height: 100dvh !important;
         <div class="result-title" id="resultText"></div>
       </div>
 
-      <div class="actions" id="actions"><button class="btn" id="continueBtn" type="button">ΣΥΝΕΧΕΙΑ ΣΤΟ ΠΛΗΡΩΜΑ</button>
+      <div class="actions" id="actions"><button class="btn" id="continueBtn" type="button">ΚΑΤΑΧΩΡΗΣΗ ΠΛΗΡΩΜΑΤΟΣ</button>
         <button class="btn secondary" id="newSearchBtn" type="button">ΝΕΑ ΑΝΑΖΗΤΗΣΗ</button>
       </div>
 
-      <!-- Η ενσωματωμένη φόρμα ΕΙΟ αφαιρέθηκε. Χρησιμοποιείται RegattaHub Helper. -->
+      <!-- ΕΝΣΩΜΑΤΩΜΕΝΗ ΦΟΡΜΑ ΔΗΛΩΣΗΣ ΠΛΗΡΩΜΑΤΟΣ ΕΙΟ -->
+<div
+  id="eioTestWrap"
+  style="display:none; width:100%; max-width:1100px; margin:20px auto;"
+>
+  <div
+    id="orcStickyWrap"
+    style="
+      display:none;
+      position:sticky;
+      top:10px;
+      z-index:50;
+      margin:0 auto 16px auto;
+      max-width:760px;
+    "
+  >
+    <div
+      id="orcReferenceBox"
+      style="
+        position:relative;
+        padding:12px 16px;
+        background:#eaf6ff;
+        border:2px solid #2b7bbb;
+        border-radius:8px;
+        text-align:center;
+        font-size:16px;
+      "
+    >
+      <img
+        src="https://github.com/jsamartzis-png/logos/blob/main/logo_EntryFlow_removebg-preview.png?raw=true"
+        alt="RegattaHub"
+        style="
+          position:absolute;
+          left:18px;
+          top:50%;
+          transform:translateY(-50%);
+          width:82px;
+          height:auto;
+        "
+      >
 
+      <div style="font-weight:700; margin-bottom:6px; padding:0 90px;">
+        ORC Reference πιστοποιητικού
+      </div>
+
+      <div
+        id="orcReferenceValue"
+        style="font-size:22px; font-weight:800; letter-spacing:1px; padding:0 90px;"
+      ></div>
+
+      <button
+        id="copyOrcReferenceBtn"
+        type="button"
+        onclick="copyOrcReference()"
+        style="
+          margin-top:9px;
+          min-width:150px;
+          height:38px;
+          padding:0 16px;
+          border:none;
+          border-radius:5px;
+          background:#4d8b1f;
+          color:#fff;
+          font-size:14px;
+          font-weight:800;
+          cursor:pointer;
+        "
+      >
+        ΑΝΤΙΓΡΑΦΗ
+      </button>
+    </div>
+
+    <div
+      id="orcReferenceHelp"
+      style="
+        margin-top:6px;
+        padding:5px 10px;
+        text-align:center;
+        font-size:15px;
+        font-weight:600;
+        background:rgba(241,244,239,0.96);
+        border-radius:4px;
+      "
+    >
+      Επικολλήστε το ORC Reference όταν σας ζητηθεί στη φόρμα της ΕΙΟ.
+    </div>
+  </div>
+
+  <div
+    style="
+      max-width:760px;
+      margin:0 auto 10px auto;
+      text-align:center;
+      font-size:13px;
+      line-height:1.45;
+      color:#5f5147;
+    "
+  >
+    Η δήλωση πληρώματος πραγματοποιείται στην εφαρμογή της Ελληνικής Ιστιοπλοϊκής Ομοσπονδίας (ΕΙΟ/ΕΑΘ), η οποία προβάλλεται εδώ για τη διευκόλυνση του χρήστη.
+  </div>
+
+  <iframe
+    src="https://www.offshore.org.gr/mail/raceprogram.php?intro=yes&show=available"
+    style="width:100%; height:1200px; border:1px solid #ccc; background:white;"
+    title="Δήλωση Πληρώματος ΕΙΟ"
+  ></iframe>
+</div>
+<div
+  id="eioConfirmBox"
+  style="display:none; margin:20px auto; padding:16px; max-width:760px; background:#fff8d8; border:2px solid #d39b00; border-radius:8px; text-align:center;"
+>
+
+  <label style="font-size:16px; font-weight:700; line-height:1.5;">
+    <input
+      type="checkbox"
+      id="eioCompletedCheck"
+      style="width:22px; height:22px; margin-right:10px; vertical-align:middle;"
+      onchange="document.getElementById('continueAfterEioBtn').style.display = this.checked ? 'inline-block' : 'none';"
+    >
+    Έχω ολοκληρώσει και υποβάλει οριστικά τη δήλωση πληρώματος στην ΕΙΟ
+  </label>
+
+  <div style="margin-top:16px;">
+    <button
+      id="continueAfterEioBtn"
+      class="btn"
+      type="button"
+      style="display:none;"
+    >
+      ΣΥΝΕΧΕΙΑ ΣΤΗΝ ΑΙΤΗΣΗ ΣΥΜΜΕΤΟΧΗΣ
+    </button>
+  </div>
+</div>    
 <div id="crewScreen" style="display:none; max-width:720px; margin:20px auto; border:1px solid #bfb6aa; padding:28px; background:white; text-align:center; border-radius:6px;">
 
   <h3 style="text-align:center;"> ΚΑΤΑΧΩΡΗΣΗ ΣΤΟΙΧΕΙΩΝ ΠΛΗΡΩΜΑΤΟΣ</h3>
@@ -1006,6 +1137,7 @@ const CONFIG = {
   SETTINGS_ENDPOINT: makeSettingsEndpoint(),
 
   OSR_RULE: "YES",
+  EIO_FLOW: "NO",
 
   ORGANIZER_BANNER: "",
   ORGANIZER_NAME: "",
@@ -1017,8 +1149,9 @@ const CONFIG = {
 
   JOTFORM_FORM_ID: "262470677464365",
   JOTFORM_BASE_URL: "https://form.jotform.com/262470677464365",
-BOAT_LOOKUP_URL:
-  "https://script.google.com/macros/s/AKfycbweSV0ADfQEtl26B_lcxGjWHHgx0G8d5oYiZoK-ZvxQC4l2JPaIx9vEiWKmyDIXjvpkGQ/exec",
+
+  BOAT_LOOKUP_URL:
+    "https://script.google.com/macros/s/AKfycbweSV0ADfQEtl26B_lcxGjWHHgx0G8d5oYiZoK-ZvxQC4l2JPaIx9vEiWKmyDIXjvpkGQ/exec",
 
   PERSON_LOOKUP_URL:
     "https://script.google.com/macros/s/AKfycbw-zgZZeHRC6S5_f1xGkTwx-wXcFNq9z2O4cfhzAHSULQNDrwCp88vcvgU-617pgcg1/exec",
@@ -1133,6 +1266,37 @@ function applyOsrRule() {
   box.style.display = "block";
 }
 
+function isEioFlowEnabled() {
+  return false;
+}
+
+function resetEioUi() {
+  const wrap = document.getElementById("eioTestWrap");
+  const confirmBox = document.getElementById("eioConfirmBox");
+  const completedCheck = document.getElementById("eioCompletedCheck");
+  const continueAfterEioBtn = document.getElementById("continueAfterEioBtn");
+  const stickyWrap = document.getElementById("orcStickyWrap");
+
+  if (wrap) wrap.style.display = "none";
+  if (confirmBox) confirmBox.style.display = "none";
+  if (stickyWrap) stickyWrap.style.display = "none";
+  if (completedCheck) completedCheck.checked = false;
+  if (continueAfterEioBtn) continueAfterEioBtn.style.display = "none";
+}
+
+function applyCrewFlowUi() {
+  const continueBtn = document.getElementById("continueBtn");
+  const useEio = isEioFlowEnabled();
+
+  if (continueBtn) {
+    continueBtn.textContent = useEio
+      ? "ΔΗΛΩΣΗ ΠΛΗΡΩΜΑΤΟΣ ΕΙΟ"
+      : "ΚΑΤΑΧΩΡΗΣΗ ΠΛΗΡΩΜΑΤΟΣ";
+  }
+
+  if (!useEio) resetEioUi();
+}
+
 function renderRaceSettings() {
   const title = String(CONFIG.EVENT_TITLE || "").trim();
   const raceDate = String(CONFIG.RACE_DATE || "").trim();
@@ -1185,6 +1349,7 @@ function renderRaceSettings() {
 
   showOrganizerBanner(CONFIG.ORGANIZER_BANNER);
   applyOsrRule();
+  applyCrewFlowUi();
   document.title = title ? "RegattaFlow - " + title : "RegattaFlow";
 }
 
@@ -1210,6 +1375,7 @@ function applyRaceSettingsData(data) {
   CONFIG.OSR_RULE = String(
     data.osrRule || CONFIG.OSR_RULE || "YES"
   ).trim().toUpperCase();
+  CONFIG.EIO_FLOW = "NO";
 
   const jotformId =
     data.jotformFormId || data.jotformId || CONFIG.JOTFORM_FORM_ID;
@@ -2075,6 +2241,7 @@ window.scrollTo({ top: 0, behavior: "auto" });
       sailInput.value = "";
       setStatus("");
       hideResult();
+      resetEioUi();
       sailInput.focus();
       window.scrollTo({ top: 0, behavior: "smooth" });
       
@@ -2200,9 +2367,134 @@ const boatLookupWarmup =
 
     searchBtn.addEventListener("click", searchBoat);
 
+function copyOrcReference() {
+  const valueEl = document.getElementById("orcReferenceValue");
+  const button = document.getElementById("copyOrcReferenceBtn");
+  const value = valueEl ? String(valueEl.textContent || "").trim() : "";
+
+  if (!value) return;
+
+  function showCopied() {
+    if (!button) return;
+    button.textContent = "ΑΝΤΙΓΡΑΦΗΚΕ ✓";
+    window.setTimeout(function () {
+      if (button) button.textContent = "ΑΝΤΙΓΡΑΦΗ";
+    }, 1800);
+  }
+
+  function fallbackCopy() {
+    const temp = document.createElement("textarea");
+    temp.value = value;
+    temp.setAttribute("readonly", "");
+    temp.style.position = "fixed";
+    temp.style.left = "-9999px";
+    temp.style.opacity = "0";
+    document.body.appendChild(temp);
+    temp.select();
+    temp.setSelectionRange(0, temp.value.length);
+
+    try {
+      document.execCommand("copy");
+      showCopied();
+    } catch (error) {
+      alert("Δεν ήταν δυνατή η αυτόματη αντιγραφή. Επιλέξτε τον κωδικό χειροκίνητα.");
+    }
+
+    document.body.removeChild(temp);
+  }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(value)
+      .then(showCopied)
+      .catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+}
+
+async function continueFromEioToForm() {
+  const acceptTerms = document.getElementById("acceptTermsCheck");
+
+  if (acceptTerms && !acceptTerms.checked) {
+    alert("Παρακαλούμε αποδεχθείτε την Πολιτική Απορρήτου και τους Όρους Χρήσης για να συνεχίσετε.");
+    acceptTerms.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  if (!lastFoundData) {
+    setStatus("Δεν υπάρχουν στοιχεία για συνέχεια.", true, false, true);
+    return;
+  }
+
+  await settingsReadyPromise;
+
+  let formUrl = "";
+  try {
+    formUrl = buildPrefillUrl(lastFoundData);
+  } catch (error) {
+    console.error(error);
+    alert(error.message || "Δεν ήταν δυνατό να ανοίξει η φόρμα συμμετοχής.");
+    return;
+  }
+
+  const openJotformDirectly =
+    window.matchMedia("(max-width: 1024px)").matches ||
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (openJotformDirectly) {
+    window.location.assign(formUrl);
+    return;
+  }
+
+  resetEioUi();
+  formFrame.src = formUrl;
+  formWrap.style.display = "block";
+
+  document.body.classList.add("jotform-open");
+  document.documentElement.classList.add("jotform-open-html");
+
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
 continueBtn.addEventListener("click", function () {
-  showCrewScreen();
+  const acceptTerms = document.getElementById("acceptTermsCheck");
+
+  if (acceptTerms && !acceptTerms.checked) {
+    alert("Παρακαλούμε αποδεχθείτε την Πολιτική Απορρήτου και τους Όρους Χρήσης για να συνεχίσετε.");
+    acceptTerms.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  if (!isEioFlowEnabled()) {
+    showCrewScreen();
+    return;
+  }
+
+  const eioTestWrap = document.getElementById("eioTestWrap");
+  const eioConfirmBox = document.getElementById("eioConfirmBox");
+  const orcValue = document.getElementById("orcReferenceValue");
+  const orcStickyWrap = document.getElementById("orcStickyWrap");
+
+  if (eioTestWrap) eioTestWrap.style.display = "block";
+  if (eioConfirmBox) eioConfirmBox.style.display = "block";
+
+  const orcReference = lastFoundData && lastFoundData.orc_reference
+    ? String(lastFoundData.orc_reference).trim()
+    : "";
+
+  if (orcValue) orcValue.textContent = orcReference;
+  if (orcStickyWrap) orcStickyWrap.style.display = orcReference ? "block" : "none";
+
+  if (eioTestWrap) {
+    eioTestWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 });
+
+const continueAfterEioBtn = document.getElementById("continueAfterEioBtn");
+if (continueAfterEioBtn) {
+  continueAfterEioBtn.addEventListener("click", continueFromEioToForm);
+}
+
     newSearchBtn.addEventListener("click", resetSearch);
 
     sailInput.addEventListener("keydown", function (e) {
@@ -2290,32 +2582,28 @@ function hideSecondCaptain() {
 }
 
 /* ============================================================
-   REGATTAHUB EIO HELPER — LOCAL LOOKUP BRIDGE
-   04/10/2026
-   Η σελίδα RegattaHub ΔΕΝ καλεί την ΕΙΟ.
-   Τα δεδομένα προέρχονται από το browser Helper και
-   χρησιμοποιούνται προσωρινά μόνο στην τρέχουσα σελίδα.
+   RegattaHub EIO Helper — TEST local athlete lookup
+   Η αναζήτηση αθλητών ΔΕΝ κάνει κλήση προς την ΕΙΟ.
+   Τα δεδομένα έρχονται από την browser extension.
    ============================================================ */
-
-const RH_EIO_HELPER_STORE = {
+const RH_EIO_HELPER = {
   records: new Map(),
-  capturedAt: "",
-  sourceUrl: ""
+  captureKey: ""
 };
 
-function rhEioCardKey(value) {
+function rhEioCardKey_(value) {
   const digits = String(value || "").replace(/\D/g, "");
   return digits.replace(/^0+/, "") || digits;
 }
 
-function rhEioCleanText(value) {
+function rhEioClean_(value) {
   return String(value || "")
     .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function rhEioNorm(value) {
+function rhEioNorm_(value) {
   return String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -2323,123 +2611,101 @@ function rhEioNorm(value) {
     .replace(/[\s:：.\-]/g, "");
 }
 
-function rhEioFieldFromRecord(recordEl, labels) {
-  const wanted = new Set(labels.map(rhEioNorm));
+function rhEioField_(recordEl, labels) {
+  const wanted = new Set(labels.map(rhEioNorm_));
   const rows = Array.from(recordEl.querySelectorAll("p, tr, .row, .field, .info-row"));
 
   for (const row of rows) {
-    const strong = row.querySelector("strong, th, .label");
-    if (!strong) continue;
-
-    if (!wanted.has(rhEioNorm(strong.textContent))) continue;
+    const label = row.querySelector("strong, th, .label");
+    if (!label || !wanted.has(rhEioNorm_(label.textContent))) continue;
 
     const clone = row.cloneNode(true);
     const labelClone = clone.querySelector("strong, th, .label");
     if (labelClone) labelClone.remove();
 
-    let value = rhEioCleanText(clone.textContent);
-    if (!value && row.querySelector("td")) {
-      const cells = row.querySelectorAll("td");
-      value = rhEioCleanText(cells[cells.length - 1]?.textContent || "");
-    }
-    return value;
+    const value = rhEioClean_(clone.textContent);
+    if (value) return value;
   }
-
   return "";
 }
 
-function rhEioParseCapture(payload) {
-  const rawHtml = String(payload?.html || "");
-  if (!rawHtml.trim()) return [];
+function rhEioParse_(payload) {
+  const html = String(payload && payload.html || "");
+  if (!html.trim()) return [];
 
-  const doc = new DOMParser().parseFromString(rawHtml, "text/html");
-
-  let recordEls = Array.from(doc.querySelectorAll(".single-record"));
-
-  // Εφεδρική αναγνώριση αν αλλάξει λίγο η σελίδα της ΕΙΟ.
-  if (!recordEls.length) {
-    recordEls = Array.from(doc.querySelectorAll(
-      ".result-card, .search-result, .player-result, .result, article"
-    ));
-  }
-
-  // Αν υπάρχει μόνο ένα αποτέλεσμα και δεν έχει wrapper με γνωστή class,
-  // χρησιμοποιούμε το container του "Αποτέλεσμα Αναζήτησης".
-  if (!recordEls.length) {
-    const all = Array.from(doc.body.querySelectorAll("div"));
-    const candidate = all.find(el =>
-      /Αποτέλεσμα\s+Αναζήτησης/i.test(el.textContent || "") &&
-      /ΑΜ|Αριθμός\s+Μητρώου/i.test(el.textContent || "")
-    );
-    if (candidate) recordEls = [candidate];
-  }
-
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const recordEls = Array.from(doc.querySelectorAll(".single-record"));
   const records = [];
 
   for (const el of recordEls) {
-    const card = rhEioFieldFromRecord(el, [
-      "ΑΜ", "Α.Μ.", "Αριθμός Μητρώου", "Αριθμός Δελτίου"
+    const card = rhEioField_(el, [
+      "Αριθμός Μητρώου", "ΑΜ", "Α.Μ.", "Αριθμός Δελτίου"
     ]);
-    const surname = rhEioFieldFromRecord(el, ["Επώνυμο"]);
-    const firstName = rhEioFieldFromRecord(el, ["Όνομα"]);
-    const club = rhEioFieldFromRecord(el, ["Όμιλος", "Σωματείο", "Club"]);
-    const status = rhEioFieldFromRecord(el, ["Κατάσταση", "Κατάσταση Δελτίου", "Status"]);
+    const surname = rhEioField_(el, ["Επώνυμο"]);
+    const firstName = rhEioField_(el, ["Όνομα"]);
+    const club = rhEioField_(el, ["Όμιλος", "Σωματείο", "Club"]);
+    const status = rhEioField_(el, ["Κατάσταση Δελτίου", "Κατάσταση", "Status"]);
 
-    const key = rhEioCardKey(card);
+    const key = rhEioCardKey_(card);
     if (!key || (!surname && !firstName)) continue;
 
     records.push({
-      key,
+      key: key,
       card: String(card || "").replace(/\D/g, ""),
-      name: rhEioCleanText([surname, firstName].filter(Boolean).join(" ")),
-      club: rhEioCleanText(club),
-      status: rhEioCleanText(status)
+      name: rhEioClean_([surname, firstName].filter(Boolean).join(" ")),
+      club: rhEioClean_(club),
+      status: rhEioClean_(status)
     });
   }
 
   return records;
 }
 
-function rhEioImportCapture(payload) {
-  const records = rhEioParseCapture(payload);
+function rhEioImport_(payload) {
+  const key = String(payload && payload.capturedAt || "") + "|" +
+              String(payload && payload.pageUrl || "");
 
-  RH_EIO_HELPER_STORE.records.clear();
-  records.forEach(rec => RH_EIO_HELPER_STORE.records.set(rec.key, rec));
-  RH_EIO_HELPER_STORE.capturedAt = String(payload?.capturedAt || "");
-  RH_EIO_HELPER_STORE.sourceUrl = String(payload?.pageUrl || "");
+  if (key && key === RH_EIO_HELPER.captureKey) return;
+
+  const records = rhEioParse_(payload);
+  RH_EIO_HELPER.records.clear();
+  records.forEach(function (record) {
+    RH_EIO_HELPER.records.set(record.key, record);
+  });
+  RH_EIO_HELPER.captureKey = key;
 
   if (!records.length) {
     alert(
-      "Ο Helper παρέδωσε τη σελίδα, αλλά δεν αναγνωρίστηκαν δελτία.\n\n" +
-      "Κάντε αναζήτηση στο Μητρώο Αθλητών της ΕΙΟ, περιμένετε να εμφανιστούν τα αποτελέσματα " +
-      "και πατήστε «RegattaHub · Λήψη ΕΙΟ»."
+      "Ο Helper παρέδωσε δεδομένα, αλλά δεν αναγνωρίστηκε κανένα δελτίο.\n\n" +
+      "Στην ΕΙΟ κάντε πρώτα την αναζήτηση, περιμένετε να εμφανιστεί το αποτέλεσμα " +
+      "και μετά πατήστε «RegattaHub · Λήψη ΕΙΟ»."
     );
     return;
   }
 
   alert(
     records.length === 1
-      ? "✓ Φορτώθηκε 1 δελτίο από την ΕΙΟ. Η αναζήτηση στο RegattaHub είναι έτοιμη."
-      : "✓ Φορτώθηκαν " + records.length + " δελτία από την ΕΙΟ. Η αναζήτηση στο RegattaHub είναι έτοιμη."
+      ? "✓ Φορτώθηκε 1 δελτίο από την ΕΙΟ."
+      : "✓ Φορτώθηκαν " + records.length + " δελτία από την ΕΙΟ."
   );
 }
 
 document.addEventListener("regattahub:eio-data", function (event) {
-  rhEioImportCapture(event.detail || {});
+  rhEioImport_(event.detail || {});
 });
 
 window.addEventListener("message", function (event) {
   if (event.origin !== window.location.origin) return;
   if (!event.data || event.data.source !== "REGATTAHUB_EIO_HELPER") return;
   if (event.data.type !== "EIO_CAPTURE") return;
-  rhEioImportCapture(event.data.payload || {});
+  rhEioImport_(event.data.payload || {});
 });
 
 async function lookupPerson(input) {
-  const id = String(input?.value || "").trim();
+  const id = String(input && input.value || "").trim();
   if (!id) return;
 
-  const row = input.parentElement?.parentElement;
+  const row = input.parentElement && input.parentElement.parentElement;
   if (!row) return;
 
   const nameEl = row.querySelector(".name");
@@ -2458,36 +2724,28 @@ async function lookupPerson(input) {
 
   refreshWosrSelectors();
 
-  if (!RH_EIO_HELPER_STORE.records.size) {
+  if (!RH_EIO_HELPER.records.size) {
     if (statusEl) {
-      statusEl.innerText = "✖ Δεν έχουν φορτωθεί δεδομένα ΕΙΟ.";
+      statusEl.innerText = "✖ Δεν έχουν φορτωθεί δεδομένα από τον Helper.";
       statusEl.style.color = "#b00020";
     }
 
     alert(
-      "Δεν υπάρχουν ακόμη ενημερωμένα δεδομένα ΕΙΟ στον Helper.
-
-" +
-      "1. Ανοίξτε το Μητρώο Αθλητών της ΕΙΟ.
-" +
-      "2. Αναζητήστε το δελτίο ή τα δελτία.
-" +
-      "3. Πατήστε «RegattaHub · Λήψη ΕΙΟ».
-" +
+      "Δεν έχουν φορτωθεί ακόμη δεδομένα ΕΙΟ.\n\n" +
+      "1. Ανοίξτε το Μητρώο Αθλητών της ΕΙΟ.\n" +
+      "2. Αναζητήστε το δελτίο ή τα δελτία.\n" +
+      "3. Πατήστε «RegattaHub · Λήψη ΕΙΟ».\n" +
       "4. Επιστρέψτε εδώ και πατήστε «ΕΙΟ → RegattaHub»."
     );
     return;
   }
 
-  const record = RH_EIO_HELPER_STORE.records.get(rhEioCardKey(id));
+  const record = RH_EIO_HELPER.records.get(rhEioCardKey_(id));
 
   if (!record) {
     if (nameEl) nameEl.innerText = "Δεν βρέθηκε";
-    if (clubEl) clubEl.innerText = "";
-
     if (statusEl) {
-      statusEl.innerText =
-        "✖ Το δελτίο " + id + " δεν υπάρχει στα δεδομένα ΕΙΟ που φορτώθηκαν.";
+      statusEl.innerText = "✖ Το δελτίο δεν υπάρχει στα δεδομένα που φόρτωσε ο Helper.";
       statusEl.style.color = "#b00020";
     }
     return;
@@ -2498,17 +2756,17 @@ async function lookupPerson(input) {
   if (cardEl) cardEl.innerText = record.card || id;
 
   const crewSectionEl = document.getElementById("crewSection");
-
   if (crewSectionEl && input.closest("#crewScreen")) {
     crewSectionEl.style.display = "block";
 
     if (input.closest("#crewTable")) {
-      document.getElementById("continueToJotformBtn").style.display = "inline-block";
+      const continueBtn = document.getElementById("continueToJotformBtn");
+      if (continueBtn) continueBtn.style.display = "inline-block";
     }
   }
 
   if (statusEl) {
-    statusEl.innerText = "✔ Βρέθηκε στα δεδομένα ΕΙΟ του Helper";
+    statusEl.innerText = "✔ Βρέθηκε";
     statusEl.style.color = "#2e7d32";
   }
 
