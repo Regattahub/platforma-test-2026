@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RegattaFlow - Ειρήνης - Φιλίας 2026</title>
 <!-- RegattaHub MASTER race template -->
-<!-- TEST COPY built from verified-working VATHY index; VATHY source untouched; EIO parser v5 + multi-result auto-fill to crew field -->
+<!-- PLATINUM CANDIDATE 01: EIO tab workflow + automatic return via Helper -->
 <!-- Race-specific values are injected by New Race Wizard -->
 
   <style>
@@ -921,16 +921,16 @@ height: 100dvh !important;
   <div style="margin-bottom:20px;">
 <strong>ΚΥΒΕΡΝΗΤΗΣ</strong><br>
 <label style="font-weight:bold;">
-  Συμπληρώστε τον αριθμό αθλητικού δελτίου κυβερνήτη
+  Αναζητήστε τον κυβερνήτη στο Μητρώο Αθλητών της ΕΙΟ
 </label><br>
 
 <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:8px;">
-<input id="captainCardInput" type="text" inputmode="numeric" placeholder="Αρ. δελτίου" style="height:48px; width:220px; max-width:100%; font-size:18px; font-weight:700; text-align:center; color:#143a63; background:#fffdf2; border:2px solid #0d5e92; border-radius:7px; box-shadow:0 0 0 3px rgba(13,94,146,0.10); outline:none;">
+<input id="captainCardInput" type="text" inputmode="numeric" placeholder="Αρ. δελτίου" readonly aria-label="Αριθμός δελτίου κυβερνήτη από ΕΙΟ" style="height:48px; width:220px; max-width:100%; font-size:18px; font-weight:700; text-align:center; color:#143a63; background:#fffdf2; border:2px solid #0d5e92; border-radius:7px; box-shadow:0 0 0 3px rgba(13,94,146,0.10); outline:none;">
 
 </div>
 <div style="text-align:center; margin:12px 0 14px 0;">
-  <button class="btn" type="button" onclick="lookupPerson(document.getElementById('captainCardInput'))">
-    ΑΝΑΖΗΤΗΣΗ
+  <button id="openEioCaptainBtn" class="btn" type="button" onclick="openEioAthleteRegistry()">
+    ΑΝΑΖΗΤΗΣΗ ΣΤΗΝ ΕΙΟ
   </button>
 </div>
 <div style="height:14px;"></div>
@@ -2503,6 +2503,23 @@ if (continueAfterEioBtn) {
         searchBoat();
       }
     });
+
+function openEioAthleteRegistry() {
+  const eioUrl = "https://eio.gr/clubs/get_player.php";
+
+  // Με εγκατεστημένο Helper, η επέκταση ανοίγει/ενεργοποιεί την ΕΙΟ
+  // και θυμάται ποια καρτέλα RegattaHub πρέπει να επαναφέρει.
+  if (document.documentElement.dataset.rhEioHelperReady === "1") {
+    document.dispatchEvent(new CustomEvent("regattahub:open-eio-request", {
+      detail: { url: eioUrl }
+    }));
+    return;
+  }
+
+  // Ασφαλές fallback αν δεν έχει εγκατασταθεί ακόμη η επέκταση.
+  window.open(eioUrl, "_blank", "noopener");
+}
+
 function showCrewScreen() {
   const acceptTerms = document.getElementById("acceptTermsCheck");
 
