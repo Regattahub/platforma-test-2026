@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RegattaHub · TEST εγκατάστασης κουμπιού</title>
+<style>
+body{font-family:Arial,sans-serif;background:#eef5f9;margin:0;padding:40px 20px;color:#123}
+.card{max-width:620px;margin:auto;background:#fff;border-radius:18px;padding:28px;box-shadow:0 12px 35px #0002}
+h1{font-size:26px;margin:0 0 12px}
+p{line-height:1.5}
+.install{display:block;text-align:center;background:#18894c;color:white;text-decoration:none;font-weight:800;font-size:20px;padding:18px;border-radius:12px;margin:24px 0}
+.note{background:#fff7d6;padding:14px;border-radius:10px}
+.ok{background:#eef8f0;padding:14px;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>TEST · Εγκατάσταση RegattaHub με ένα κλικ</h1>
+<p>Αυτό είναι μόνο δοκιμή του Chrome. Δεν αλλάζει τη v6.</p>
+
+<a class="install" rel="bookmarklet" href="javascript:(()=&gt;{try{ if(!/^https:\/\/(www\.)?eio\.gr\//i.test(location.href)){alert(&quot;Ανοίξτε πρώτα το Μητρώο Αθλητών της ΕΙΟ.&quot;);return;} if(!window.opener||window.opener.closed){alert(&quot;Ανοίξτε την ΕΙΟ από το RegattaHub Quick Check και δοκιμάστε ξανά.&quot;);return;} const clean=s=&gt;String(s||&quot;&quot;).replace(/\u00a0/g,&quot; &quot;).replace(/[ \t]+\n/g,&quot;\n&quot;).replace(/\n{3,}/g,&quot;\n\n&quot;).trim(); const bodyText=clean(document.body?.innerText||&quot;&quot;); const hasTableResult=[...document.querySelectorAll(&quot;table tr&quot;)].some(tr=&gt;tr.querySelectorAll(&quot;td&quot;).length&gt;=6); const hasSingleResult=/Αποτέλεσμα Αναζήτησης/i.test(bodyText)&amp;&amp;/(^|\n)\s*ΑΜ\s*:?\s*\d{3,}/im.test(bodyText); if(hasTableResult||hasSingleResult){ const payload={schema:5,source:&quot;EIO_BOOKMARKLET&quot;,pageUrl:location.href,pageTitle:document.title,capturedAt:new Date().toISOString(),text:bodyText,html:document.documentElement?.outerHTML||&quot;&quot;}; window.opener.postMessage({source:&quot;REGATTAHUB_EIO_BOOKMARKLET&quot;,type:&quot;EIO_CAPTURE&quot;,payload},&quot;*&quot;); try{window.opener.focus();}catch(e){} alert(&quot;✓ Τα στοιχεία στάλθηκαν στο RegattaHub Quick Check.&quot;); return; } let finished=false; const handler=(ev)=&gt;{ const d=ev.data||{}; if(d.source!==&quot;REGATTAHUB_QUICKCHECK&quot;||d.type!==&quot;EIO_CARDS&quot;) return; window.removeEventListener(&quot;message&quot;,handler); finished=true; const ids=Array.isArray(d.cards)?d.cards.filter(Boolean):[]; if(!ids.length){alert(&quot;Δεν βρέθηκαν ΑΜ στο RegattaHub Quick Check.&quot;);return;} const input=document.querySelector(&#x27;input[name=&quot;search_term&quot;]&#x27;)|| document.querySelector(&#x27;input[type=&quot;text&quot;]&#x27;); if(!input){alert(&quot;Δεν βρέθηκε το πεδίο αναζήτησης της ΕΙΟ.&quot;);return;} input.focus(); input.value=ids.join(&quot;,&quot;); input.dispatchEvent(new Event(&quot;input&quot;,{bubbles:true})); input.dispatchEvent(new Event(&quot;change&quot;,{bubbles:true})); alert(&quot;✓ Ο ΑΜ μπήκε στο πεδίο της ΕΙΟ.\nΠατήστε τώρα «Αναζήτηση».&quot;); }; window.addEventListener(&quot;message&quot;,handler); window.opener.postMessage({ source:&quot;REGATTAHUB_EIO_BOOKMARKLET&quot;, type:&quot;REQUEST_CARDS&quot; },&quot;*&quot;); setTimeout(()=&gt;{ if(finished) return; window.removeEventListener(&quot;message&quot;,handler); alert(&quot;Δεν πήρα τους ΑΜ από το RegattaHub Quick Check. Επιστρέψτε εκεί και ανοίξτε ξανά την ΕΙΟ.&quot;); },1800); }catch(e){alert(&quot;Δεν ολοκληρώθηκε η ενέργεια. &quot;+(e&amp;&amp;e.message?e.message:e));}})();">ΕΓΚΑΤΑΣΤΑΣΗ ΚΟΥΜΠΙΟΥ REGATTAHUB</a>
+
+<div class="note">
+<b>Τι περιμένουμε:</b><br>
+Αν ο Chrome υποστηρίζει τον παλιό μηχανισμό <code>rel="bookmarklet"</code>,
+θα πρέπει να εμφανίσει διάλογο/επιβεβαίωση για προσθήκη του κουμπιού στα Αγαπημένα.
+</div>
+
+<p class="ok"><b>Αν αντί γι’ αυτό εμφανιστεί μήνυμα</b> «Ανοίξτε πρώτα το Μητρώο Αθλητών της ΕΙΟ»,
+τότε ο Chrome εκτέλεσε το bookmarklet αντί να το εγκαταστήσει και το πείραμα απέτυχε με ασφάλεια.</p>
+</div>
+</body>
+</html>
