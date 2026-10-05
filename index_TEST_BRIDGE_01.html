@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RegattaHub TEST BRIDGE 01</title>
+  <style>
+    html,body{
+      margin:0;
+      padding:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:#0d5e92;
+      font-family:Arial,Helvetica,sans-serif;
+    }
+    #raceFrame{
+      display:block;
+      width:100%;
+      height:100%;
+      border:0;
+      background:#0d5e92;
+    }
+    #bridgeBadge{
+      position:fixed;
+      right:10px;
+      bottom:10px;
+      z-index:999999;
+      padding:7px 10px;
+      border-radius:8px;
+      background:rgba(20,58,99,.94);
+      color:#fff;
+      font-size:12px;
+      font-weight:800;
+      box-shadow:0 2px 10px rgba(0,0,0,.25);
+      pointer-events:none;
+    }
+    #bridgeBadge.ok{background:rgba(31,111,67,.95)}
+    #bridgeBadge.bad{background:rgba(176,0,32,.95)}
+  </style>
+</head>
+<body>
+  <iframe id="raceFrame" title="RegattaHub TEST"></iframe>
+  <div id="bridgeBadge">BRIDGE 01 · φόρτωση…</div>
+
+<script>
+(() => {
+  const frame = document.getElementById("raceFrame");
+  const badge = document.getElementById("bridgeBadge");
+
+  function setBadge(text, cls) {
+    badge.textContent = text;
+    badge.className = cls || "";
+  }
+
+  function buildIndexUrl() {
+    const u = new URL("index.html", window.location.href);
+
+    // Περνάμε τυχόν race/settings παραμέτρους και στο πραγματικό TEST index.
+    const here = new URL(window.location.href);
+    here.searchParams.forEach((value, key) => {
+      u.searchParams.set(key, value);
+    });
+
+    u.searchParams.set("bridgeTest", "01");
+    return u.href;
+  }
+
+  function installBridgeIntoRace() {
+    try {
+      const w = frame.contentWindow;
+      if (!w || !w.document) {
+        setBadge("BRIDGE 01 · δεν άνοιξε το TEST", "bad");
+        return;
+      }
+
+      // Η έγχυση γίνεται ΜΕΣΑ στο ίδιο το TEST window ώστε το window.open()
+      // να έχει ως opener το RegattaHub TEST και όχι το εξωτερικό wrapper.
+      w.eval(String.raw`
+(() => {
+  if (window.__RH_BRIDGE_01_INSTALLED__) return;
+  window.__RH_BRIDGE_01_INSTALLED__ = true;
+
+  function rhBridgeNormalizeTarget_(target) {
+    if (target === "secondCaptain") return "secondCaptain";
+    if (target === "crew") return "crew";
+    return "captain";
+  }
+
+  function rhBridgeOpenQuickCheck_(target) {
+    const normalized = rhBridgeNormalizeTarget_(target);
+
+    try {
+      if (typeof setEioImportTarget_ === "function") {
+        setEioImportTarget_(normalized);
+      }
+    } catch (_) {}
+
+    const q = new URL("quick-check-v7.html", window.location.href);
+    q.search = "";
+    q.searchParams.set("target", normalized);
+
+    const popup = window.open(q.href, "rhRegattaHubQuickCheck");
+
+    if (!popup) {
+      alert(
+        "Ο browser εμπόδισε το άνοιγμα του RegattaHub Quick Check.\\n\\n" +
+        "Επιτρέψτε τα αναδυόμενα παράθυρα για το regattahub.github.io και δοκιμάστε ξανά."
+      );
+      return null;
+    }
+
+    try { popup.focus(); } catch (_) {}
+    return popup;
+  }
+
+  // Αντικαθιστούμε ΜΟΝΟ το άνοιγμα της ΕΙΟ στο TEST.
+  // Η υπόλοιπη PLATINUM CANDIDATE 04 παραμένει όπως είναι.
+  window.openEioAthleteRegistry = function(target) {
+    return rhBridgeOpenQuickCheck_(target || "captain");
+  };
+
+  window.startSecondCaptainEio = function() {
+    try {
+      if (typeof setEioImportTarget_ === "function") {
+        setEioImportTarget_("secondCaptain");
+      }
+    } catch (_) {}
+
+    const section = document.getElementById("secondCaptainSection");
+    const buttonBox = document.getElementById("addSecondCaptainBox");
+
+    if (section) section.style.display = "block";
+    if (buttonBox) buttonBox.style.display = "none";
+
+    return rhBridgeOpenQuickCheck_("secondCaptain");
+  };
+
+  window.startCrewEio = function() {
+    try {
+      if (typeof setEioImportTarget_ === "function") {
+        setEioImportTarget_("crew");
+      }
+    } catch (_) {}
+
+    return rhBridgeOpenQuickCheck_("crew");
+  };
+
+  // Παραλαβή από quick-check-v7.html → υπάρχον rhEioImport_().
+  window.addEventListener("message", function(event) {
+    if (event.origin !== window.location.origin) return;
+
+    const d = event.data || {};
+    if (d.source !== "REGATTAHUB_QUICKCHECK") return;
+    if (d.type !== "EIO_RESULT") return;
+
+    const target = rhBridgeNormalizeTarget_(d.target);
+
+    try {
+      if (typeof setEioImportTarget_ === "function") {
+        setEioImportTarget_(target);
+      }
+    } catch (_) {}
+
+    if (typeof rhEioImport_ !== "function") {
+      alert(
+        "BRIDGE 01: Το TEST παρέλαβε τα στοιχεία, αλλά δεν βρέθηκε η υπάρχουσα rhEioImport_()."
+      );
+      return;
+    }
+
+    // Χρησιμοποιούμε ακριβώς τον υπάρχοντα parser/εισαγωγή της PLATINUM CANDIDATE 04.
+    rhEioImport_(d.payload || {});
+  });
+
+  console.log("RegattaHub BRIDGE 01 installed");
+})();
+      `);
+
+      setBadge("BRIDGE 01 · ΕΝΕΡΓΟ", "ok");
+    } catch (err) {
+      console.error(err);
+      setBadge("BRIDGE 01 · ΣΦΑΛΜΑ", "bad");
+      alert(
+        "Δεν ενεργοποιήθηκε το BRIDGE 01.\\n\\n" +
+        (err && err.message ? err.message : String(err))
+      );
+    }
+  }
+
+  frame.addEventListener("load", () => {
+    // Μικρή αναμονή για να ολοκληρωθεί το script του index.html.
+    setTimeout(installBridgeIntoRace, 250);
+  });
+
+  frame.src = buildIndexUrl();
+})();
+</script>
+</body>
+</html>
