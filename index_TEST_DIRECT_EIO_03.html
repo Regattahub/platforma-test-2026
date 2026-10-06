@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RegattaHub TEST DIRECT EIO 03</title>
+  <style>
+    html,body{
+      margin:0;
+      padding:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      background:#0d5e92;
+      font-family:Arial,Helvetica,sans-serif;
+    }
+    #raceFrame{
+      display:block;
+      width:100%;
+      height:100%;
+      border:0;
+      background:#0d5e92;
+    }
+    #bridgeBadge{
+      position:fixed;
+      right:10px;
+      bottom:10px;
+      z-index:999999;
+      padding:7px 10px;
+      border-radius:8px;
+      background:rgba(20,58,99,.94);
+      color:#fff;
+      font-size:12px;
+      font-weight:800;
+      box-shadow:0 2px 10px rgba(0,0,0,.25);
+      pointer-events:none;
+    }
+    #bridgeBadge.ok{background:rgba(31,111,67,.95)}
+    #bridgeBadge.bad{background:rgba(176,0,32,.95)}
+  </style>
+</head>
+<body>
+  <iframe id="raceFrame" title="RegattaHub TEST"></iframe>
+  <div id="bridgeBadge">DIRECT EIO 03 · φόρτωση…</div>
+
+<script>
+(() => {
+  const frame = document.getElementById("raceFrame");
+  const badge = document.getElementById("bridgeBadge");
+
+  function setBadge(text, cls) {
+    badge.textContent = text;
+    badge.className = cls || "";
+  }
+
+  function buildIndexUrl() {
+    const u = new URL("index.html", window.location.href);
+
+    // Περνάμε τυχόν race/settings παραμέτρους και στο πραγματικό TEST index.
+    const here = new URL(window.location.href);
+    here.searchParams.forEach((value, key) => {
+      u.searchParams.set(key, value);
+    });
+
+    u.searchParams.set("directEioTest", "03");
+    return u.href;
+  }
+
+  function installBridgeIntoRace() {
+    try {
+      const w = frame.contentWindow;
+      if (!w || !w.document) {
+        setBadge("DIRECT EIO 03 · δεν άνοιξε το TEST", "bad");
+        return;
+      }
+
+      // Η έγχυση γίνεται ΜΕΣΑ στο ίδιο το TEST window ώστε το window.open()
+      // να έχει ως opener το RegattaHub TEST και όχι το εξωτερικό wrapper.
+      w.eval(String.raw`
+(() => {
+  if (window.__RH_DIRECT_EIO_03_INSTALLED__) return;
+  window.__RH_DIRECT_EIO_03_INSTALLED__ = true;
+
+  const RH_DIRECT_BOOKMARKLET = "javascript:(()=>{try{ if(!/^https:\\\\/\\\\/(www\\\\.)?eio\\\\.gr\\\\//i.test(location.href)){alert(\"Ανοίξτε πρώτα το Μητρώο Αθλητών της ΕΙΟ.\");return;} const clean=s=>String(s||\"\").replace(/\\\\u00a0/g,\" \").replace(/[ \\\\t]+\\\\n/g,\"\\\\n\").replace(/\\\\n{3,}/g,\"\\\\n\\\\n\").trim(); const bodyText=clean(document.body?.innerText||\"\"); const hasTableResult=[...document.querySelectorAll(\"table tr\")].some(tr=>tr.querySelectorAll(\"td\").length>=6); const hasSingleResult=/Αποτέλεσμα Αναζήτησης/i.test(bodyText)&&/(^|\\\\n)\\\\s*ΑΜ\\\\s*:?\\\\s*\\\\d{3,}/im.test(bodyText); if(hasTableResult||hasSingleResult){ if(!window.opener||window.opener.closed){alert(\"Η σελίδα RegattaHub δεν είναι πλέον ανοιχτή.\");return;} const payload={schema:7,source:\"EIO_BOOKMARKLET\",pageUrl:location.href,pageTitle:document.title,capturedAt:new Date().toISOString(),text:bodyText,html:document.documentElement?.outerHTML||\"\"}; window.opener.postMessage({source:\"REGATTAHUB_EIO_BOOKMARKLET\",type:\"EIO_CAPTURE\",payload},\"*\"); try{window.opener.focus();}catch(e){} alert(\"✓ Τα στοιχεία στάλθηκαν στο RegattaHub.\"); return; } const params=new URLSearchParams((location.hash||\"\").replace(/^#/,\"\")); const raw=params.get(\"rh\")||\"\"; const ids=raw.split(\",\").map(x=>x.trim()).filter(Boolean); if(ids.length){ const input=document.querySelector('input[name=\"search_term\"]')||document.querySelector('input[type=\"text\"]'); if(!input){alert(\"Δεν βρέθηκε το πεδίο αναζήτησης της ΕΙΟ.\");return;} input.focus(); input.value=ids.join(\",\"); input.dispatchEvent(new Event(\"input\",{bubbles:true})); input.dispatchEvent(new Event(\"change\",{bubbles:true})); alert(\"✓ Ο ΑΜ μπήκε στο πεδίο της ΕΙΟ.\\\\nΠατήστε τώρα «Αναζήτηση».\"); return; } if(!window.opener||window.opener.closed){alert(\"Ανοίξτε την ΕΙΟ από το RegattaHub και δοκιμάστε ξανά.\");return;} let finished=false; const handler=(ev)=>{ const d=ev.data||{}; if(d.source!==\"REGATTAHUB_QUICKCHECK\"||d.type!==\"EIO_CARDS\") return; window.removeEventListener(\"message\",handler); finished=true; const got=Array.isArray(d.cards)?d.cards.filter(Boolean):[]; if(!got.length){alert(\"Δεν βρέθηκαν ΑΜ στο RegattaHub.\");return;} const input=document.querySelector('input[name=\"search_term\"]')||document.querySelector('input[type=\"text\"]'); if(!input){alert(\"Δεν βρέθηκε το πεδίο αναζήτησης της ΕΙΟ.\");return;} input.focus(); input.value=got.join(\",\"); input.dispatchEvent(new Event(\"input\",{bubbles:true})); input.dispatchEvent(new Event(\"change\",{bubbles:true})); alert(\"✓ Ο ΑΜ μπήκε στο πεδίο της ΕΙΟ.\\\\nΠατήστε τώρα «Αναζήτηση».\"); }; window.addEventListener(\"message\",handler); window.opener.postMessage({source:\"REGATTAHUB_EIO_BOOKMARKLET\",type:\"REQUEST_CARDS\"},\"*\"); setTimeout(()=>{if(finished)return;window.removeEventListener(\"message\",handler);alert(\"Δεν βρέθηκαν οι ΑΜ. Επιστρέψτε στο RegattaHub και ανοίξτε ξανά την ΕΙΟ.\");},1800); }catch(e){alert(\"Δεν ολοκληρώθηκε η ενέργεια. \"+(e&&e.message?e.message:e));}})();";
+
+  function normalizeTarget(target) {
+    if (target === "secondCaptain") return "secondCaptain";
+    if (target === "crew") return "crew";
+    return "captain";
+  }
+
+  function getIdsForTarget(target) {
+    target = normalizeTarget(target);
+
+    if (target === "captain") {
+      return [String(document.getElementById("captainCardInput")?.value || "").replace(/\D/g,"").trim()].filter(Boolean);
+    }
+
+    if (target === "secondCaptain") {
+      return [String(document.getElementById("secondCaptainCardInput")?.value || "").replace(/\D/g,"").trim()].filter(Boolean);
+    }
+
+    const raw = String(document.getElementById("bulkCrewCards")?.value || "");
+    return [...new Set(raw.split(/[\s,;]+/).map(x => x.replace(/\D/g,"").trim()).filter(Boolean))];
+  }
+
+  function prepareUserFields() {
+    const captain = document.getElementById("captainCardInput");
+    if (captain) {
+      captain.readOnly = false;
+      captain.placeholder = "Γράψτε ΑΜ π.χ. 19012";
+      captain.setAttribute("aria-label", "Αριθμός Μητρώου ΕΙΟ κυβερνήτη");
+      captain.style.background = "#ffffff";
+    }
+
+    const crew = document.getElementById("bulkCrewCards");
+    if (crew) {
+      crew.readOnly = false;
+      crew.placeholder = "Γράψτε τους ΑΜ πληρώματος, έναν ανά γραμμή";
+      crew.setAttribute("aria-label", "Αριθμοί Μητρώου ΕΙΟ πληρώματος");
+      crew.style.background = "#ffffff";
+    }
+  }
+
+  function installBookmarkGuide() {
+    if (document.getElementById("rhDirectBookmarkGuide")) return;
+
+    const crewScreen = document.getElementById("crewScreen");
+    if (!crewScreen) return;
+
+    const box = document.createElement("div");
+    box.id = "rhDirectBookmarkGuide";
+    box.style.cssText =
+      "margin:0 auto 22px auto;padding:16px 18px;max-width:650px;" +
+      "background:#eef8f1;border:2px solid #198754;border-radius:10px;" +
+      "text-align:center;line-height:1.5;color:#173b2a;";
+
+    box.innerHTML =
+      '<div style="font-weight:900;font-size:17px;margin-bottom:8px;">ΠΡΩΤΗ ΧΡΗΣΗ · ΜΙΑ ΦΟΡΑ ΜΟΝΟ</div>' +
+      '<div style="margin-bottom:10px;">Αν δεν βλέπετε τη γραμμή Σελιδοδεικτών, πατήστε <b>Ctrl + Shift + B</b>.</div>' +
+      '<div style="margin-bottom:10px;">Σύρετε το πράσινο κουμπί στη γραμμή Σελιδοδεικτών:</div>' +
+      '<a id="rhDirectBookmark" href="#" draggable="true" ' +
+      'style="display:inline-block;background:#198754;color:#fff;text-decoration:none;' +
+      'font-weight:900;font-size:16px;padding:12px 18px;border-radius:9px;box-shadow:0 2px 8px rgba(0,0,0,.16);">' +
+      'RegattaHub · Μεταφορά</a>' +
+      '<div style="font-size:13px;margin-top:10px;color:#446254;">Μετά δεν χρειάζεται να το ξανακάνετε.</div>';
+
+    crewScreen.insertBefore(box, crewScreen.firstChild);
+
+    const link = box.querySelector("#rhDirectBookmark");
+    link.setAttribute("href", RH_DIRECT_BOOKMARKLET);
+  }
+
+  function openEioDirect(target) {
+    const normalized = normalizeTarget(target);
+    try { if (typeof setEioImportTarget_ === "function") setEioImportTarget_(normalized); } catch (_) {}
+
+    const ids = getIdsForTarget(normalized);
+
+    if (!ids.length) {
+      const label = normalized === "crew" ? "τους ΑΜ του πληρώματος" :
+                    normalized === "secondCaptain" ? "τον ΑΜ του δεύτερου κυβερνήτη" :
+                    "τον ΑΜ του κυβερνήτη";
+      alert("Γράψτε πρώτα " + label + " στη φόρμα RegattaHub.");
+      return null;
+    }
+
+    const url = "https://eio.gr/clubs/get_player.php#rh=" + encodeURIComponent(ids.join(","));
+    const popup = window.open(url, "rhEioDirect");
+
+    if (!popup) {
+      alert("Ο browser εμπόδισε το άνοιγμα της ΕΙΟ. Επιτρέψτε τα αναδυόμενα παράθυρα και δοκιμάστε ξανά.");
+      return null;
+    }
+
+    try { popup.focus(); } catch (_) {}
+    return popup;
+  }
+
+  // DIRECT FLOW: φόρμα -> ΕΙΟ -> ίδια φόρμα. Χωρίς Quick Check.
+  window.openEioAthleteRegistry = function(target) {
+    return openEioDirect(target || "captain");
+  };
+
+  window.startCrewEio = function() {
+    try { if (typeof setEioImportTarget_ === "function") setEioImportTarget_("crew"); } catch (_) {}
+    return openEioDirect("crew");
+  };
+
+  // Δεύτερος κυβερνήτης: για το DIRECT TEST ζητάμε πρώτα ΑΜ στην ίδια φόρμα.
+  window.startSecondCaptainEio = function() {
+    try { if (typeof setEioImportTarget_ === "function") setEioImportTarget_("secondCaptain"); } catch (_) {}
+
+    const section = document.getElementById("secondCaptainSection");
+    const buttonBox = document.getElementById("addSecondCaptainBox");
+    const input = document.getElementById("secondCaptainCardInput");
+
+    if (section) section.style.display = "block";
+    if (buttonBox) buttonBox.style.display = "none";
+
+    if (input) {
+      const holder = input.parentElement;
+      if (holder) holder.style.display = "block";
+      input.readOnly = false;
+      input.placeholder = "Γράψτε ΑΜ 2ου κυβερνήτη";
+      input.style.cssText =
+        "height:48px;width:220px;max-width:100%;font-size:18px;font-weight:700;" +
+        "text-align:center;color:#143a63;background:#fff;border:2px solid #0d5e92;" +
+        "border-radius:7px;box-shadow:0 0 0 3px rgba(13,94,146,.10);outline:none;margin:8px auto 12px;";
+    }
+
+    if (!document.getElementById("rhSecondCaptainSearchBtn") && section) {
+      const btn = document.createElement("button");
+      btn.id = "rhSecondCaptainSearchBtn";
+      btn.className = "btn";
+      btn.type = "button";
+      btn.textContent = "ΑΝΑΖΗΤΗΣΗ 2ου ΚΥΒΕΡΝΗΤΗ ΣΤΗΝ ΕΙΟ";
+      btn.addEventListener("click", () => openEioDirect("secondCaptain"));
+      section.insertBefore(btn, section.querySelector(".personStatus"));
+    }
+
+    if (input) input.focus();
+  };
+
+  // Παραλαβή απευθείας από το bookmarklet της ΕΙΟ.
+  window.addEventListener("message", function(event) {
+    if (event.origin !== "https://eio.gr" && event.origin !== "https://www.eio.gr") return;
+
+    const d = event.data || {};
+    if (d.source !== "REGATTAHUB_EIO_BOOKMARKLET") return;
+    if (d.type !== "EIO_CAPTURE") return;
+
+    if (typeof rhEioImport_ !== "function") {
+      alert("Το RegattaHub παρέλαβε τα στοιχεία, αλλά δεν βρέθηκε η λειτουργία εισαγωγής.");
+      return;
+    }
+
+    rhEioImport_(d.payload || {});
+  });
+
+  prepareUserFields();
+  installBookmarkGuide();
+
+  const observer = new MutationObserver(() => {
+    prepareUserFields();
+    installBookmarkGuide();
+  });
+  observer.observe(document.documentElement, {childList:true,subtree:true});
+
+  console.log("RegattaHub DIRECT EIO 03 installed");
+})();
+      `);
+
+      setBadge("DIRECT EIO 03 · ΕΝΕΡΓΟ", "ok");
+    } catch (err) {
+      console.error(err);
+      setBadge("DIRECT EIO 03 · ΣΦΑΛΜΑ", "bad");
+      alert(
+        "Δεν ενεργοποιήθηκε το DIRECT EIO 03.\\n\\n" +
+        (err && err.message ? err.message : String(err))
+      );
+    }
+  }
+
+  let directInstalled = false;
+
+  function tryInstallDirect() {
+    if (directInstalled) return;
+    try {
+      const w = frame.contentWindow;
+      const d = w && w.document;
+      if (!w || !d || !d.documentElement) return;
+
+      // Περιμένουμε να έχει αρχίσει να φορτώνεται πραγματικά το index.html.
+      if (!String(w.location.href || "").includes("index.html")) return;
+
+      installBridgeIntoRace();
+
+      try {
+        directInstalled = !!w.__RH_DIRECT_EIO_03_INSTALLED__;
+      } catch (_) {
+        directInstalled = false;
+      }
+
+      if (directInstalled) {
+        setBadge("DIRECT EIO 03 · ΕΝΕΡΓΟ", "ok");
+      }
+    } catch (_) {
+      // Αν το frame είναι ακόμη σε about:blank, ξαναδοκιμάζουμε.
+    }
+  }
+
+  frame.addEventListener("load", () => {
+    setTimeout(tryInstallDirect, 150);
+    setTimeout(tryInstallDirect, 600);
+  });
+
+  frame.src = buildIndexUrl();
+
+  // Δεν βασιζόμαστε μόνο στο load event.
+  const retryTimer = setInterval(() => {
+    tryInstallDirect();
+    if (directInstalled) clearInterval(retryTimer);
+  }, 500);
+
+  setTimeout(() => {
+    if (!directInstalled) {
+      setBadge("DIRECT EIO 03 · αναμονή TEST…");
+    }
+  }, 5000);
+})();
+</script>
+</body>
+</html>
