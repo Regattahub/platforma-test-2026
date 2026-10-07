@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RegattaHub · Μεταφορά Πληρώματος</title>
+<style>
+:root{--blue:#0d5e92;--green:#268b3c;--ink:#17324a;--line:#d6e0e7;--soft:#f4f8fb}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#e8f1f6,#f8fbfd);color:var(--ink)}
+.wrap{width:min(980px,94%);margin:28px auto}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 42px rgba(20,61,91,.14);overflow:hidden}
+.head{background:var(--blue);color:#fff;padding:20px 24px;text-align:center}
+.head h1{margin:0;font-size:27px}.head p{margin:6px 0 0;opacity:.92}
+.body{padding:24px}
+.ok{background:#eef9f1;border:1px solid #bfe2c7;padding:14px 16px;border-radius:10px;font-weight:800;margin-bottom:18px}
+.warn{background:#fff1f1;border:1px solid #e2bcbc;padding:12px 14px;border-radius:10px;color:#8a1f1f;font-weight:800;margin-bottom:18px}
+.meta{background:var(--soft);padding:12px 14px;border-radius:10px;margin-bottom:18px;line-height:1.5}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border:1px solid var(--line);padding:9px 8px;text-align:left}
+th{background:#eef5f8}
+.captain{font-weight:800}
+.invalid{background:#fff0f0;color:#9b111e;font-weight:700}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.btn{display:inline-block;border:0;border-radius:9px;padding:13px 20px;font-weight:900;text-decoration:none;cursor:pointer}
+.primary{background:var(--green);color:#fff}
+.small{font-size:12px;color:#65788a;margin-top:14px;text-align:center}
+@media(max-width:700px){.body{padding:14px}table{font-size:12px}.wrap{width:100%;margin:0}.card{border-radius:0;min-height:100vh}.head h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="wrap"><main class="card">
+<header class="head">
+  <h1>RegattaHub · Πλήρωμα από ΕΙΟ</h1>
+  <p>Αυτόματη μεταφορά των εμφανιζόμενων στοιχείων</p>
+</header>
+<section class="body"><div id="content"></div></section>
+</main></div>
+
+<script>
+(function(){
+  const box=document.getElementById("content");
+
+  function decodeToken(token){
+    token=String(token||"").replace(/-/g,"+").replace(/_/g,"/");
+    while(token.length%4)token+="=";
+    return JSON.parse(decodeURIComponent(escape(atob(token))));
+  }
+
+  function esc(v){
+    return String(v||"").replace(/[&<>"']/g,c=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  function cleanName(v){
+    return String(v||"")
+      .replace(/διαγραφή/gi,"")
+      .replace(/\(\s*ΚΥΒΕΡΝΗΤΗΣ\s*\)/gi,"")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
+  function isInvalidStatus(v){
+    return /έληξε|ληγμ|expired|inactive|μη ενεργ/i.test(String(v||""));
+  }
+
+  try{
+    const m=(location.hash||"").match(/(?:^#|&)rhcrew=([^&]+)/);
+    if(!m) throw new Error("Δεν βρέθηκαν δεδομένα πληρώματος.");
+
+    const payload=decodeToken(m[1]);
+    if(!payload || !Array.isArray(payload.records) || !payload.records.length){
+      throw new Error("Δεν βρέθηκαν μέλη πληρώματος.");
+    }
+
+    payload.records=payload.records.map(r=>Object.assign({},r,{
+      name:cleanName(r.name),
+      invalid:isInvalidStatus(r.status)
+    }));
+
+    localStorage.setItem("rh_eio_crew_payload_v1",JSON.stringify(payload));
+
+    try{
+      const bc=new BroadcastChannel("regattahub-eio-crew");
+      bc.postMessage({type:"CREW_IMPORTED",payload});
+      setTimeout(()=>bc.close(),400);
+    }catch(_){}
+
+    const invalidCount=payload.records.filter(r=>r.invalid).length;
+
+    const rows=payload.records.map(r=>`
+      <tr class="${r.isCaptain?"captain ":""}${r.invalid?"invalid":""}">
+        <td>${esc(r.card)}</td>
+        <td>${esc(r.name)}${r.isCaptain?" <b>(Κυβερνήτης)</b>":""}</td>
+        <td>${esc(r.club)}</td>
+        <td>${r.firstAid?"Ναι":""}</td>
+        <td>${esc(r.renewal)}</td>
+        <td>${esc(r.expiry)}</td>
+        <td>${esc(r.status)}${r.invalid?" — ΜΗ ΕΝΕΡΓΟ":""}</td>
+      </tr>
+    `).join("");
+
+    box.innerHTML=`
+      <div class="ok">✓ Μεταφέρθηκαν ${payload.records.length} μέλη από τη Δήλωση Αθλητών της ΕΙΟ.</div>
+      ${invalidCount ? `<div class="warn">⚠ Βρέθηκαν ${invalidCount} μη ενεργά / ληγμένα δελτία. Θα εμφανιστούν με κόκκινο στο RegattaHub και δεν θα επιτρέπεται η συνέχεια όσο παραμένουν στο πλήρωμα.</div>` : ""}
+      <div class="meta">
+        <b>Σκάφος:</b> ${esc(payload.boatName||"")} ${esc(payload.sailNo||"")}<br>
+        <b>Τα στοιχεία αποθηκεύτηκαν τοπικά στον browser</b> και είναι έτοιμα για τη φόρμα RegattaHub.
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>ΑΜ ΕΙΟ</th><th>Ονοματεπώνυμο</th><th>Όμιλος</th>
+              <th>Πρώτες Βοήθειες</th><th>Ανανέωση</th><th>Λήξη</th><th>Κατάσταση</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="iframe-crewflow-test-v4.html?imported=1">ΣΥΝΕΧΕΙΑ ΣΤΟ REGATTAHUB</a>
+      </div>
+      <div class="small">Ο προσωπικός σύνδεσμος / apikey της ΕΙΟ δεν αποθηκεύεται ούτε μεταφέρεται.</div>
+    `;
+  }catch(e){
+    box.innerHTML=`<div class="warn"><b>Δεν ολοκληρώθηκε η μεταφορά.</b><br>${esc(e.message||e)}</div>`;
+  }
+})();
+</script>
+</body>
+</html>
