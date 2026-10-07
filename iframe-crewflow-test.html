@@ -1,1 +1,76 @@
-<!doctype html><html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RegattaHub · Δήλωση Πληρώματος</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0f6697;color:#1f2d38}.page{width:min(1180px,96%);margin:18px auto 28px;background:#e9f0f2;border-radius:8px;padding:18px}.head{max-width:930px;margin:0 auto 14px;background:#fff;border:1px solid #c9c2b8;border-radius:8px;padding:16px 18px;text-align:center}.logo{width:105px;max-width:30vw;height:auto}h1{margin:5px 0 7px;font-size:23px;color:#153f61}.note{font-size:14px;line-height:1.5;color:#5f5147;margin:0}.guide{max-width:930px;margin:0 auto 14px;padding:12px 15px;background:#fff8d8;border:1px solid #d39b00;border-radius:7px;line-height:1.5}.frame-wrap{width:100%;background:#fff;border:1px solid #bbb;border-radius:6px;overflow:hidden}iframe{display:block;width:100%;height:1250px;border:0;background:#fff}.imported{display:none;max-width:930px;margin:18px auto 0;background:#fff;border:2px solid #2a8a45;border-radius:10px;padding:16px}.imported.show{display:block}.imported h2{margin:0 0 10px;color:#1d6e37;font-size:21px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #d5dce2;padding:8px;text-align:left}th{background:#eef5f8}.badge{position:fixed;right:10px;bottom:10px;background:#1f6f43;color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:800}@media(max-width:700px){.page{width:100%;margin:0;border-radius:0;padding:8px}iframe{height:1200px}.head{padding:12px}.guide{font-size:13px}}</style></head><body><main class="page"><section class="head"><img class="logo" src="https://github.com/jsamartzis-png/logos/blob/main/logo_EntryFlow_removebg-preview.png?raw=true" alt="RegattaHub"><h1>ΔΗΛΩΣΗ ΠΛΗΡΩΜΑΤΟΣ</h1><p class="note">Η επίσημη διαδικασία της ΕΙΟ προβάλλεται μέσα στο RegattaHub. Μετά το email της ΕΙΟ, ο προσωπικός σύνδεσμος ανοίγει κανονικά στον browser του κυβερνήτη.</p></section><div class="guide"><b>Ροή δοκιμής:</b> Επιλέξτε αγώνα και συμπληρώστε τα στοιχεία στην ΕΙΟ. Όταν λάβετε το email, ανοίξτε τον προσωπικό σύνδεσμο, προσθέστε/αποθηκεύστε το πλήρωμα και πατήστε το αγαπημένο <b>REGATTAHUB</b>. Τα εμφανιζόμενα μέλη θα επιστρέψουν εδώ αυτόματα.</div><section id="imported" class="imported"></section><section class="frame-wrap"><iframe src="https://www.offshore.org.gr/mail/raceprogram.php?intro=yes&show=available" title="Δήλωση Πληρώματος ΕΙΟ" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></section></main><div class="badge">CREW FLOW TEST · ΕΝΕΡΓΟ</div><script>(function(){const panel=document.getElementById("imported");function esc(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}function render(payload){if(!payload||!Array.isArray(payload.records)||!payload.records.length)return;const rows=payload.records.map(r=>`<tr><td>${esc(r.card)}</td><td>${esc(r.name)}${r.isCaptain?" <b>(Κυβερνήτης)</b>":""}</td><td>${esc(r.club)}</td><td>${esc(r.status)}</td></tr>`).join("");panel.innerHTML=`<h2>✓ Το πλήρωμα επέστρεψε στο RegattaHub</h2><div style="margin-bottom:10px"><b>${payload.records.length} μέλη</b> παραλήφθηκαν από τη σελίδα της ΕΙΟ.</div><div style="overflow-x:auto"><table><thead><tr><th>ΑΜ ΕΙΟ</th><th>Ονοματεπώνυμο</th><th>Όμιλος</th><th>Κατάσταση</th></tr></thead><tbody>${rows}</tbody></table></div>`;panel.classList.add("show");panel.scrollIntoView({behavior:"smooth",block:"start"})}try{const saved=JSON.parse(localStorage.getItem("rh_eio_crew_payload_v1")||"null");if(saved)render(saved)}catch(_){}try{const bc=new BroadcastChannel("regattahub-eio-crew");bc.onmessage=e=>{if(e.data&&e.data.type==="CREW_IMPORTED")render(e.data.payload)}}catch(_){}window.addEventListener("storage",e=>{if(e.key!=="rh_eio_crew_payload_v1"||!e.newValue)return;try{render(JSON.parse(e.newValue))}catch(_){}})})();</script></body></html>
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RegattaHub · TEST Εισαγωγή Πληρώματος</title>
+<style>
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0d5e92;font-family:Arial,Helvetica,sans-serif}
+#raceFrame{display:block;width:100%;height:100%;border:0;background:#0d5e92}
+#badge{position:fixed;right:10px;bottom:10px;z-index:999999;padding:7px 10px;border-radius:8px;background:rgba(20,58,99,.94);color:#fff;font-size:12px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+#badge.ok{background:rgba(31,111,67,.95)}#badge.bad{background:rgba(176,0,32,.95)}
+</style>
+</head>
+<body>
+<iframe id="raceFrame" title="RegattaHub TEST"></iframe>
+<div id="badge">CREW IMPORT 01 · φόρτωση…</div>
+<script>
+(function(){
+  const frame=document.getElementById('raceFrame');
+  const badge=document.getElementById('badge');
+  function setBadge(t,c){badge.textContent=t;badge.className=c||'';}
+  function readPayload(){try{const p=JSON.parse(localStorage.getItem('rh_eio_crew_payload_v1')||'null');if(p&&Array.isArray(p.records)&&p.records.length)return p;}catch(_){}return null;}
+  function cleanName(v){return String(v||'').replace(/\bδιαγραφή\b/gi,'').replace(/\(\s*ΚΥΒΕΡΝΗΤΗΣ\s*\)/gi,'').replace(/\s+/g,' ').trim();}
+  function inject(){
+    const p=readPayload(); if(!p){setBadge('CREW IMPORT 01 · δεν βρέθηκαν δεδομένα','bad');return;}
+    const w=frame.contentWindow; if(!w||!w.document){setBadge('CREW IMPORT 01 · δεν άνοιξε το TEST','bad');return;}
+    try{
+      const doc=w.document;
+      if(typeof w.showCrewScreen==='function') w.showCrewScreen();
+      const captain=p.records.find(r=>r&&r.isCaptain)||p.records[0];
+      const crew=p.records.filter(r=>r&&r!==captain);
+
+      const capInput=doc.getElementById('captainCardInput');
+      if(capInput&&captain){
+        capInput.value=String(captain.card||''); capInput.readOnly=true;
+        let box=capInput.closest('div')||capInput.parentElement;
+        let n=box&&box.querySelector('.name'), cl=box&&box.querySelector('.club'), st=box&&box.querySelector('.personStatus');
+        if(n)n.textContent=cleanName(captain.name); if(cl)cl.textContent=String(captain.club||'');
+        if(st){st.textContent='✔ Μεταφέρθηκε από ΕΙΟ';st.style.color='#2e7d32';}
+      }
+
+      const crewSection=doc.getElementById('crewSection'); if(crewSection) crewSection.style.display='block';
+      const crewList=doc.getElementById('crewList'); if(crewList) crewList.innerHTML='';
+      const bulk=doc.getElementById('bulkCrewCards'); if(bulk) bulk.value=crew.map(r=>String(r.card||'')).filter(Boolean).join('\n');
+
+      crew.forEach(function(r){
+        if(typeof w.addCrewMember!=='function') return;
+        w.addCrewMember();
+        const rows=doc.querySelectorAll('#crewTable tbody tr'); const tr=rows[rows.length-1]; if(!tr)return;
+        const input=tr.querySelector('input'); if(input){input.value=String(r.card||'');input.readOnly=true;}
+        const n=tr.querySelector('.name'),cl=tr.querySelector('.club'),st=tr.querySelector('.personStatus');
+        if(n)n.textContent=cleanName(r.name); if(cl)cl.textContent=String(r.club||'');
+        if(st){st.textContent='✔ Μεταφέρθηκε από ΕΙΟ';st.style.color='#2e7d32';}
+      });
+
+      if(typeof w.renumberCrewRows==='function') w.renumberCrewRows();
+      if(typeof w.refreshWosrSelectors==='function') w.refreshWosrSelectors();
+      const btn=doc.getElementById('continueToJotformBtn'); if(btn&&crew.length)btn.style.display='inline-block';
+
+      const screen=doc.getElementById('crewScreen');
+      if(screen&&!doc.getElementById('rhImportedCrewNotice')){
+        const box=doc.createElement('div');box.id='rhImportedCrewNotice';
+        box.style.cssText='max-width:720px;margin:0 auto 18px;padding:14px 16px;background:#eef9f1;border:2px solid #2e8b57;border-radius:10px;color:#185c36;font-weight:800;text-align:center;line-height:1.45;';
+        box.innerHTML='✓ Μεταφέρθηκαν <b>'+p.records.length+'</b> μέλη από τη Δήλωση Αθλητών της ΕΙΟ.<br>Ο κυβερνήτης και το πλήρωμα έχουν τοποθετηθεί στη φόρμα RegattaHub.';
+        screen.insertBefore(box,screen.firstChild);
+      }
+      setBadge('CREW IMPORT 01 · ΕΝΕΡΓΟ','ok');
+      setTimeout(()=>{if(screen)screen.scrollIntoView({behavior:'smooth',block:'start'});},250);
+    }catch(e){console.error(e);setBadge('CREW IMPORT 01 · σφάλμα','bad');alert('Δεν ολοκληρώθηκε η δοκιμαστική εισαγωγή: '+(e&&e.message?e.message:e));}
+  }
+  frame.addEventListener('load',()=>setTimeout(inject,700));
+  const u=new URL('index.html',location.href);u.searchParams.set('crewImportTest','01');frame.src=u.href;
+})();
+</script>
+</body>
+</html>
