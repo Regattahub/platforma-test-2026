@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RegattaHub · TEST Εισαγωγή Πληρώματος</title>
+<style>
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0d5e92;font-family:Arial,Helvetica,sans-serif}
+#raceFrame{display:block;width:100%;height:100%;border:0;background:#0d5e92}
+#badge{
+  position:fixed;right:10px;bottom:10px;z-index:999999;padding:7px 10px;border-radius:8px;
+  background:rgba(20,58,99,.94);color:#fff;font-size:12px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.25)
+}
+#badge.ok{background:rgba(31,111,67,.95)}
+#badge.bad{background:rgba(176,0,32,.95)}
+</style>
+</head>
+<body>
+<iframe id="raceFrame" title="RegattaHub TEST"></iframe>
+<div id="badge">CREW IMPORT 05 · φόρτωση…</div>
+
+<script>
+(function(){
+  const frame=document.getElementById("raceFrame");
+  const badge=document.getElementById("badge");
+
+  function setBadge(t,c){badge.textContent=t;badge.className=c||"";}
+
+  function readPayload(){
+    try{
+      const p=JSON.parse(localStorage.getItem("rh_eio_crew_payload_v1")||"null");
+      if(p && Array.isArray(p.records) && p.records.length) return p;
+    }catch(_){}
+    return null;
+  }
+
+  function cleanName(v){
+    return String(v||"")
+      .replace(/διαγραφή/gi,"")
+      .replace(/\(\s*ΚΥΒΕΡΝΗΤΗΣ\s*\)/gi,"")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
+  function badStatus(v){
+    return /έληξε|ληγμ|expired|inactive|μη ενεργ/i.test(String(v||""));
+  }
+
+  function hide(el){if(el)el.style.display="none";}
+  function show(el,display){if(el)el.style.display=display||"block";}
+
+  function forceCrewScreen(w,doc){
+    hide(doc.querySelector(".hero"));
+    hide(doc.querySelector(".separator"));
+    hide(doc.getElementById("eventTitle"));
+    hide(doc.querySelector(".notice-box"));
+    hide(doc.querySelector(".search-area"));
+    hide(doc.getElementById("status"));
+    hide(doc.getElementById("resultCard"));
+    hide(doc.getElementById("actions"));
+    hide(doc.getElementById("eioTestWrap"));
+    hide(doc.getElementById("eioConfirmBox"));
+    hide(doc.getElementById("formWrap"));
+
+    show(doc.getElementById("crewScreen"),"block");
+    show(doc.getElementById("crewSection"),"block");
+    try{w.scrollTo({top:0,behavior:"auto"});}catch(_){}
+  }
+
+  function fillCaptain(doc,captain){
+    if(!captain)return;
+
+    const screen=doc.getElementById("crewScreen");
+    const input=doc.getElementById("captainCardInput");
+    if(input){
+      input.value=String(captain.card||"");
+      input.readOnly=true;
+    }
+
+    const statusEl=screen?screen.querySelector(".personStatus"):null;
+    const nameEl=screen?screen.querySelector(".name"):null;
+    const clubEl=screen?screen.querySelector(".club"):null;
+    const cardEl=screen?screen.querySelector(".cardNumber"):null;
+
+    if(nameEl)nameEl.textContent=cleanName(captain.name);
+    if(clubEl)clubEl.textContent=String(captain.club||"").trim();
+    if(cardEl)cardEl.textContent=String(captain.card||"");
+
+    if(statusEl){
+      const bad=badStatus(captain.status);
+      statusEl.textContent=bad?"✖ Μη ενεργό δελτίο":"✔ Μεταφέρθηκε από τη Δήλωση ΕΙΟ";
+      statusEl.style.color=bad?"#b00020":"#2e7d32";
+      if(bad && screen)screen.style.borderColor="#b00020";
+    }
+
+    hide(doc.getElementById("openEioCaptainBtn"));
+
+    if(screen){
+      const labels=[...screen.querySelectorAll("label")];
+      const lbl=labels.find(x=>/Αναζητήστε τον κυβερνήτη/i.test(x.textContent||""));
+      if(lbl)lbl.textContent="Στοιχεία κυβερνήτη από τη Δήλωση Αθλητών της ΕΙΟ";
+    }
+  }
+
+  function refreshProvisionalGate(doc){
+    const continueBtn=doc.getElementById("continueToJotformBtn");
+    if(!continueBtn)return;
+
+    const invalidRows=[...doc.querySelectorAll('#crewTable tbody tr[data-invalid-card="1"]')];
+    const pending=invalidRows.filter(tr=>tr.dataset.provisionalConfirmed!=="1");
+
+    continueBtn.style.display=doc.querySelectorAll("#crewTable tbody tr").length?"inline-block":"none";
+    continueBtn.disabled=pending.length>0;
+    continueBtn.style.opacity=pending.length>0?".45":"1";
+    continueBtn.style.cursor=pending.length>0?"not-allowed":"pointer";
+    continueBtn.title=pending.length>0
+      ?"Για κάθε μη ενεργό δελτίο δηλώστε ότι υπάρχει προσωρινό δελτίο ή αφαιρέστε το μέλος."
+      :"";
+  }
+
+  function fillCrew(w,doc,crew){
+    const section=doc.getElementById("crewSection");
+    if(!section)return;
+    show(section,"block");
+
+    const oldBtn=[...section.querySelectorAll("button")].find(
+      b=>/ΑΝΑΖΗΤΗΣΗ ΠΛΗΡΩΜΑΤΟΣ ΣΤΗΝ ΕΙΟ/i.test(b.textContent||"")
+    );
+    hide(oldBtn);
+
+    const intro=[...section.querySelectorAll("div")].find(
+      d=>/Αναζητήστε τα δελτία του πληρώματος/i.test(d.textContent||"")
+    );
+    if(intro)intro.textContent="Τα στοιχεία πληρώματος μεταφέρθηκαν από τη Δήλωση Αθλητών της ΕΙΟ.";
+
+    const bulk=doc.getElementById("bulkCrewCards");
+    if(bulk){
+      bulk.value=crew.map(r=>String(r.card||"")).filter(Boolean).join("\n");
+      bulk.style.display="none";
+    }
+
+    const crewList=doc.getElementById("crewList");
+    if(crewList)crewList.innerHTML="";
+
+    let invalidCount=0;
+
+    crew.forEach(function(r){
+      if(typeof w.addCrewMember!=="function")return;
+      w.addCrewMember();
+
+      const rows=doc.querySelectorAll("#crewTable tbody tr");
+      const tr=rows[rows.length-1];
+      if(!tr)return;
+
+      const input=tr.querySelector("input");
+      if(input){
+        input.value=String(r.card||"");
+        input.readOnly=true;
+      }
+
+      const nameEl=tr.querySelector(".name");
+      const clubEl=tr.querySelector(".club");
+      const statusEl=tr.querySelector(".personStatus");
+
+      if(nameEl)nameEl.textContent=cleanName(r.name);
+      if(clubEl)clubEl.textContent=String(r.club||"").trim();
+
+      const bad=badStatus(r.status);
+
+      if(statusEl){
+        statusEl.textContent=bad?"✖ ΜΗ ΕΝΕΡΓΟ ΔΕΛΤΙΟ":"✔ Μεταφέρθηκε από ΕΙΟ";
+        statusEl.style.color=bad?"#b00020":"#2e7d32";
+      }
+
+      if(bad){
+        invalidCount++;
+        tr.style.background="#fff0f0";
+        tr.dataset.invalidCard="1";
+        tr.dataset.provisionalConfirmed="0";
+
+        const cardCell=input ? input.closest("td") : null;
+        if(cardCell){
+          const box=doc.createElement("label");
+          box.className="rhProvisionalConfirm";
+          box.style.cssText=
+            "display:block;margin-top:8px;padding:7px 8px;background:#fff8d8;" +
+            "border:1px solid #d39b00;border-radius:6px;color:#6b4300;" +
+            "font-size:11px;font-weight:800;line-height:1.3;text-align:left;cursor:pointer;";
+
+          const cb=doc.createElement("input");
+          cb.type="checkbox";
+          cb.className="rhProvisionalCheckbox";
+          cb.style.cssText="width:17px;height:17px;margin:0 6px 0 0;vertical-align:middle;";
+
+          const labelText=doc.createElement("span");
+          labelText.textContent="Έχω προσωρινό δελτίο — θα το ανεβάσω αργότερα";
+
+          box.appendChild(cb);
+          box.appendChild(labelText);
+          cardCell.appendChild(box);
+
+          cb.addEventListener("change",function(){
+            tr.dataset.provisionalConfirmed=this.checked?"1":"0";
+
+            if(statusEl){
+              statusEl.textContent=this.checked
+                ?"⚠ ΠΡΟΣΩΡΙΝΟ ΔΕΛΤΙΟ · ΕΚΚΡΕΜΕΙ ΕΓΓΡΑΦΟ"
+                :"✖ ΜΗ ΕΝΕΡΓΟ ΔΕΛΤΙΟ";
+              statusEl.style.color=this.checked?"#9a5a00":"#b00020";
+            }
+
+            tr.style.background=this.checked?"#fff9e8":"#fff0f0";
+            refreshProvisionalGate(doc);
+          });
+        }
+      }
+    });
+
+    if(typeof w.renumberCrewRows==="function")w.renumberCrewRows();
+    if(typeof w.refreshWosrSelectors==="function")w.refreshWosrSelectors();
+
+    if(invalidCount>0){
+      const warn=doc.createElement("div");
+      warn.id="rhInvalidCrewWarning";
+      warn.style.cssText=
+        "margin:14px auto;padding:12px 14px;max-width:620px;background:#fff0f0;" +
+        "border:2px solid #b00020;border-radius:8px;color:#8b0018;font-weight:800;line-height:1.45;";
+      warn.innerHTML=
+        "⚠ Υπάρχουν <b>"+invalidCount+"</b> μη ενεργά / ληγμένα δελτία.<br>" +
+        "Για κάθε τέτοιο μέλος δηλώστε ότι έχετε προσωρινό δελτίο ή αφαιρέστε το μέλος.";
+      section.insertBefore(warn,section.firstChild);
+    }
+
+    // Αν ο χρήστης διαγράψει μια κόκκινη γραμμή, ξαναελέγχουμε αυτόματα.
+    if(crewList && !crewList.dataset.rhGateObserver){
+      crewList.dataset.rhGateObserver="1";
+      const observer=new MutationObserver(function(){
+        setTimeout(function(){refreshProvisionalGate(doc);},0);
+      });
+      observer.observe(crewList,{childList:true,subtree:true});
+    }
+
+    refreshProvisionalGate(doc);
+  }
+
+  function autoSelectFirstAid(doc,captain,crew){
+    const s1=doc.getElementById("wosrMember1");
+    const s2=doc.getElementById("wosrMember2");
+    if(!s1||!s2)return;
+
+    const candidates=[];
+    if(captain && captain.firstAid && !badStatus(captain.status))candidates.push("captain");
+
+    crew.forEach(function(r,index){
+      if(r && r.firstAid && !badStatus(r.status))candidates.push(String(index+1));
+    });
+
+    s1.value=candidates[0]||"";
+    s2.value=candidates[1]||"";
+  }
+
+  function addNotice(doc,total){
+    const screen=doc.getElementById("crewScreen");
+    if(!screen||doc.getElementById("rhImportedCrewNotice"))return;
+
+    const box=doc.createElement("div");
+    box.id="rhImportedCrewNotice";
+    box.style.cssText=
+      "max-width:660px;margin:0 auto 18px;padding:14px 16px;background:#eef9f1;" +
+      "border:2px solid #2e8b57;border-radius:10px;color:#185c36;font-weight:800;" +
+      "text-align:center;line-height:1.45;";
+    box.innerHTML="✓ Μεταφέρθηκαν <b>"+total+
+      "</b> μέλη από τη Δήλωση Αθλητών της ΕΙΟ.<br>Ελέγξτε τα στοιχεία και συνεχίστε στη φόρμα.";
+    screen.insertBefore(box,screen.firstChild);
+  }
+
+  function inject(){
+    const p=readPayload();
+    if(!p){setBadge("CREW IMPORT 05 · δεν βρέθηκαν δεδομένα","bad");return;}
+
+    const w=frame.contentWindow;
+    if(!w||!w.document){setBadge("CREW IMPORT 05 · δεν άνοιξε το TEST","bad");return;}
+
+    try{
+      const doc=w.document;
+      forceCrewScreen(w,doc);
+
+      const captain=p.records.find(r=>r&&r.isCaptain)||p.records[0];
+      const crew=p.records.filter(r=>r&&r!==captain);
+
+      fillCaptain(doc,captain);
+      fillCrew(w,doc,crew);
+
+      if(typeof w.refreshWosrSelectors==="function")w.refreshWosrSelectors();
+      autoSelectFirstAid(doc,captain,crew);
+
+      addNotice(doc,p.records.length);
+      setBadge("CREW IMPORT 05 · ΕΝΕΡΓΟ","ok");
+
+      setTimeout(function(){
+        const target=doc.getElementById("crewScreen");
+        if(target)target.scrollIntoView({behavior:"auto",block:"start"});
+      },100);
+
+    }catch(e){
+      console.error(e);
+      setBadge("CREW IMPORT 05 · σφάλμα","bad");
+      alert("Δεν ολοκληρώθηκε η δοκιμαστική εισαγωγή: "+(e&&e.message?e.message:e));
+    }
+  }
+
+  frame.addEventListener("load",function(){setTimeout(inject,700);});
+
+  const u=new URL("index.html",location.href);
+  u.searchParams.set("crewImportTest","05");
+  frame.src=u.href;
+})();
+</script>
+</body>
+</html>
