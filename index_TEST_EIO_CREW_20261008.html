@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RegattaHub TEST · Δήλωση Πληρώματος ΕΙΟ</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#0d5e92;font-family:Arial,sans-serif}
+iframe{width:100%;height:100%;border:0;background:#fff}
+#indicator{position:fixed;bottom:10px;right:10px;z-index:1000;padding:8px 12px;background:#17324a;color:#fff;border-radius:8px;font-size:12px;font-weight:bold}
+#indicator.ok{background:#187447}#indicator.bad{background:#a82222}
+</style>
+</head>
+<body>
+<iframe id="regatta" src="index.html" title="RegattaHub TEST"></iframe>
+<div id="indicator">ΕΙΟ CREW TEST · φόρτωση…</div>
+<script>
+(function(){
+  const frame=document.getElementById('regatta');
+  const indicator=document.getElementById('indicator');
+  function status(msg,ok){indicator.textContent=msg;indicator.className=ok?'ok':'bad';}
+  frame.addEventListener('load',function(){
+    try{
+      const w=frame.contentWindow;
+      if(!w||!w.document||typeof w.isEioFlowEnabled!=='function')throw new Error('Δεν φορτώθηκε η αρχική φόρμα');
+      w.isEioFlowEnabled=function(){return true;};
+      if(w.CONFIG)w.CONFIG.EIO_FLOW='YES';
+      if(typeof w.applyCrewFlowUi==='function')w.applyCrewFlowUi();
+      const eio=w.document.querySelector('#eioTestWrap iframe');
+      if(!eio||!eio.src.includes('offshore.org.gr/mail/raceprogram.php'))throw new Error('Δεν βρέθηκε η σωστή δήλωση ΕΙΟ');
+      status('ΕΙΟ CREW TEST · ΕΝΕΡΓΟ',true);
+    }catch(e){status('ΕΙΟ CREW TEST · ΣΦΑΛΜΑ',false);console.error(e);}
+  });
+})();
+</script>
+</body>
+</html>
