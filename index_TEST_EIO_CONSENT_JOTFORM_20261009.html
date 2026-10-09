@@ -55,7 +55,7 @@
      submitting=true;btn.disabled=true;btn.style.opacity='.7';
      const previous=btn.textContent;btn.textContent='ΦΟΡΤΩΣΗ ΣΤΟΙΧΕΙΩΝ ΣΚΑΦΟΥΣ…';
      try{
-       const lookupBase=app.eval('BOAT_LOOKUP_URL');
+       const lookupBase='https://script.google.com/macros/s/AKfycbwpb8MIRYXKZGuNM2JnbuR80Ka5-VaOIQN09J50R4r4wZ6z7LV6fB_oPG9Bq_m4gPR5/exec';
        const response=await app.loadJsonp(lookupBase+'?action=entryLookup&id='+encodeURIComponent(sail),12000);
        if(!response||!response.ok||!response.found)throw Error('Δεν βρέθηκε το σκάφος '+sail+' στο TEST.');
        if(response.multiple&&response.matches&&response.matches.length!==1)throw Error('Βρέθηκαν περισσότερα σκάφη. Χρειάζεται επιβεβαίωση του σωστού σκάφους.');
