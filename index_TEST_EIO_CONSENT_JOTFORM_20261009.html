@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RegattaHub TEST · Αποδοχή όρων μετά την ΕΙΟ</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d5e92}iframe{width:100%;height:100%;border:0}#message{position:fixed;bottom:8px;right:9px;color:#fff;background:#17324a;padding:6px 10px;border-radius:7px;font:12px Arial;pointer-events:none;z-index:100}</style></head>
+<body><iframe id="existingFlow" src="iframe-crewflow-test-v5.html?consentTest=2" title="RegattaHub λειτουργική μεταφορά πληρώματος"></iframe><div id="message">TEST ΑΠΟΔΟΧΗΣ · φόρτωση</div>
+<script>
+(function(){
+ const outer=document.getElementById('existingFlow'),status=document.getElementById('message');
+ function install(){
+  try {
+   const w=outer.contentWindow;if(!w)return;
+   const inner=w.document.getElementById('raceFrame');if(!inner||!inner.contentWindow)return;
+   const doc=inner.contentWindow.document;
+   const original=doc.getElementById('acceptTermsCheck');
+   const btn=doc.getElementById('continueToJotformBtn');
+   if(!original||!btn)return;
+   if(doc.getElementById('rhConsentOnCrew'))return;
+   const box=doc.createElement('div');box.id='rhConsentOnCrew';
+   box.style.cssText='max-width:620px;margin:22px auto 12px;padding:15px 16px;background:#fff8d8;border:2px solid #d39b00;border-radius:10px;text-align:left;font:15px/1.5 Arial;color:#332b24;';
+   const heading=doc.createElement('div');heading.textContent='ΑΠΟΔΟΧΗ ΟΡΩΝ REGATTAHUB';heading.style.cssText='font-weight:800;text-align:center;margin-bottom:8px';box.appendChild(heading);
+   const label=doc.createElement('label');label.style.cssText='display:flex;align-items:flex-start;gap:10px;cursor:pointer';
+   const cb=doc.createElement('input');cb.type='checkbox';cb.id='rhConsentCheckbox';cb.checked=original.checked;cb.style.cssText='margin-top:4px;width:22px;height:22px;flex-shrink:0';
+   const txt=doc.createElement('span');
+   txt.appendChild(doc.createTextNode('Έχω διαβάσει και αποδέχομαι την '));
+   const sourceLinks=[...doc.querySelectorAll('label a')];
+   for(const [i,text] of ['Πολιτική Απορρήτου','Όρους Χρήσης'].entries()){
+    if(i)txt.appendChild(doc.createTextNode(' και τους '));
+    const a=doc.createElement('a');a.textContent=text;a.href=sourceLinks.find(v=>v.textContent.includes(text))?.href||'#';a.target='_blank';a.rel='noopener noreferrer';a.style.color='#075b99';txt.appendChild(a);
+   }
+   txt.appendChild(doc.createTextNode(' του RegattaHub.'));
+   label.append(cb,txt);box.appendChild(label);
+   const hint=doc.createElement('div');hint.textContent='Η αποδοχή είναι απαραίτητη πριν ανοίξει η φόρμα συμμετοχής.';hint.style.cssText='font-size:12px;margin-top:9px;color:#725925';box.appendChild(hint);
+   cb.addEventListener('change',()=>{original.checked=cb.checked; original.dispatchEvent(new Event('change',{bubbles:true}));});
+   // Prevent stale consent state: keep both checkboxes synchronized before the original form handler.
+   btn.addEventListener('click',()=>{original.checked=cb.checked;},true);
+   btn.textContent='ΟΛΟΚΛΗΡΩΣΗ ΔΗΛΩΣΗΣ ΣΥΜΜΕΤΟΧΗΣ';
+   btn.style.minWidth='min(100%, 360px)';
+   btn.style.width='auto';
+   btn.style.height='auto';
+   btn.style.minHeight='44px';
+   btn.style.padding='9px 15px';
+   btn.style.whiteSpace='normal';
+   btn.parentNode.insertBefore(box,btn);
+   let submitting=false;
+   btn.addEventListener('click',async function(evt){
+     evt.preventDefault();evt.stopImmediatePropagation();
+     if(submitting)return;
+     if(!cb.checked){alert('Παρακαλούμε αποδεχθείτε πρώτα τους Όρους Χρήσης και την Πολιτική Απορρήτου.');return;}
+     original.checked=true;
+     const app=inner.contentWindow;
+     const info=w.localStorage.getItem('rh_eio_crew_payload_v1');
+     let payload=null;
+     try{payload=JSON.parse(info||'null');}catch(e){}
+     const sail=String(payload&&payload.sailNo||'').trim();
+     if(!sail){alert('Δεν βρέθηκε αριθμός ιστίου στα δεδομένα της ΕΙΟ. Επιστρέψτε στη δήλωση πληρώματος και πατήστε ξανά το Αγαπημένο RegattaHub.');return;}
+     submitting=true;btn.disabled=true;btn.style.opacity='.7';
+     const previous=btn.textContent;btn.textContent='ΦΟΡΤΩΣΗ ΣΤΟΙΧΕΙΩΝ ΣΚΑΦΟΥΣ…';
+     try{
+       const lookupBase=app.eval('BOAT_LOOKUP_URL');
+       const response=await app.loadJsonp(lookupBase+'?action=entryLookup&id='+encodeURIComponent(sail),12000);
+       if(!response||!response.ok||!response.found)throw Error('Δεν βρέθηκε το σκάφος '+sail+' στο TEST.');
+       if(response.multiple&&response.matches&&response.matches.length!==1)throw Error('Βρέθηκαν περισσότερα σκάφη. Χρειάζεται επιβεβαίωση του σωστού σκάφους.');
+       const boat=response.data||(response.matches&&response.matches[0]);
+       if(!boat)throw Error('Δεν επιστράφηκαν τα στοιχεία του σκάφους.');
+       app.eval('lastFoundData = '+JSON.stringify(boat)+';');
+       btn.textContent='ΑΝΟΙΓΜΑ JOTFORM…';
+       await app.continueToForm();
+     }catch(e){console.error('RegattaHub TEST Jotform:',e);alert('Δεν ολοκληρώθηκε η μετάβαση στη Jotform: '+(e&&e.message||e));}
+     finally{btn.disabled=false;btn.style.opacity='1';btn.textContent=previous;submitting=false;}
+   },true);
+   status.textContent='TEST ΑΠΟΔΟΧΗΣ · ΕΝΕΡΓΟ';status.style.background='#176f43';
+  }catch(e){status.textContent='TEST ΑΠΟΔΟΧΗΣ · ΣΦΑΛΜΑ';console.error(e)}
+ }
+ const attempt=setInterval(install,450);outer.addEventListener('load',install);
+ setTimeout(()=>clearInterval(attempt),25000);
+})();
+</script></body></html>
