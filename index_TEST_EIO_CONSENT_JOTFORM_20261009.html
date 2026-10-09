@@ -62,6 +62,11 @@
        const boat=response.data||(response.matches&&response.matches[0]);
        if(!boat)throw Error('Δεν επιστράφηκαν τα στοιχεία του σκάφους.');
        app.eval('lastFoundData = '+JSON.stringify(boat)+';');
+       // TEST only: pin the validated TEST_2026_v2 form AFTER settings are loaded.
+       await app.eval('settingsReadyPromise');
+       app.eval('CONFIG.JOTFORM_FORM_ID = "262680804736362"; CONFIG.JOTFORM_BASE_URL = "https://form.jotform.com/262680804736362";');
+       if (app.eval('CONFIG.JOTFORM_BASE_URL') !== 'https://form.jotform.com/262680804736362')
+         throw Error('Δεν ορίστηκε η σωστή φόρμα Jotform TEST.');
        btn.textContent='ΑΝΟΙΓΜΑ JOTFORM…';
        await app.continueToForm();
      }catch(e){console.error('RegattaHub TEST Jotform:',e);alert('Δεν ολοκληρώθηκε η μετάβαση στη Jotform: '+(e&&e.message||e));}
