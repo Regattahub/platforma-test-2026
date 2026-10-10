@@ -30,6 +30,7 @@
    label.append(cb,txt);box.appendChild(label);
    const hint=doc.createElement('div');hint.textContent='Η αποδοχή είναι απαραίτητη πριν ανοίξει η φόρμα συμμετοχής.';hint.style.cssText='font-size:12px;margin-top:9px;color:#725925';box.appendChild(hint);
    cb.addEventListener('change',()=>{original.checked=cb.checked; original.dispatchEvent(new Event('change',{bubbles:true}));});
+   // Prevent stale consent state: keep both checkboxes synchronized before the original form handler.
    btn.addEventListener('click',()=>{original.checked=cb.checked;},true);
    btn.textContent='ΟΛΟΚΛΗΡΩΣΗ ΔΗΛΩΣΗΣ ΣΥΜΜΕΤΟΧΗΣ';
    btn.style.minWidth='min(100%, 360px)';
@@ -61,22 +62,11 @@
        const boat=response.data||(response.matches&&response.matches[0]);
        if(!boat)throw Error('Δεν επιστράφηκαν τα στοιχεία του σκάφους.');
        app.eval('lastFoundData = '+JSON.stringify(boat)+';');
-       // 10/10/2026: Διαβάζουμε το τρέχον ID από τις ΡΥΘΜΙΣΕΙΣ του αγώνα.
-       // Δεν χρησιμοποιούμε παλιό/hardcoded ID σε περίπτωση αποτυχίας.
+       // TEST only: pin the validated TEST_2026_v2 form AFTER settings are loaded.
        await app.eval('settingsReadyPromise');
-       const settingsEndpoint=app.eval('CONFIG.SETTINGS_ENDPOINT');
-       if(!settingsEndpoint)throw Error('Δεν έχει οριστεί endpoint ΡΥΘΜΙΣΕΩΝ για τον αγώνα.');
-       const settingsData=await app.loadJsonp(settingsEndpoint,12000);
-       if(!settingsData||settingsData.success===false)throw Error('Δεν φορτώθηκαν οι ΡΥΘΜΙΣΕΙΣ του αγώνα.');
-       const rawId=String(settingsData.jotformFormId||settingsData.jotformId||settingsData.JOTFORM_FORM_ID||'').trim();
-       const formUrl=String(settingsData.jotformFormUrl||settingsData.jotformUrl||'').trim();
-       const urlId=(formUrl.match(/form\.jotform\.com\/(\d+)/)||[])[1]||'';
-       const formId=rawId||urlId;
-       if(!/^\d{10,20}$/.test(formId))throw Error('Δεν βρέθηκε έγκυρο JOTFORM_FORM_ID στο φύλλο ΡΥΘΜΙΣΕΙΣ. Δεν ανοίγουμε άλλη φόρμα.');
-       app.eval('CONFIG.JOTFORM_FORM_ID = '+JSON.stringify(formId)+'; CONFIG.JOTFORM_BASE_URL = '+JSON.stringify('https://form.jotform.com/'+formId)+';');
-       if(app.eval('CONFIG.JOTFORM_FORM_ID')!==formId)throw Error('Αποτυχία ενημέρωσης του Jotform ID.');
-       status.textContent='JOTFORM ΑΠΟ ΡΥΘΜΙΣΕΙΣ · '+formId;
-       status.style.background='#176f43';
+       app.eval('CONFIG.JOTFORM_FORM_ID = "262680804736362"; CONFIG.JOTFORM_BASE_URL = "https://form.jotform.com/262680804736362";');
+       if (app.eval('CONFIG.JOTFORM_BASE_URL') !== 'https://form.jotform.com/262680804736362')
+         throw Error('Δεν ορίστηκε η σωστή φόρμα Jotform TEST.');
        btn.textContent='ΑΝΟΙΓΜΑ JOTFORM…';
        await app.continueToForm();
      }catch(e){console.error('RegattaHub TEST Jotform:',e);alert('Δεν ολοκληρώθηκε η μετάβαση στη Jotform: '+(e&&e.message||e));}
