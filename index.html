@@ -194,91 +194,6 @@
       padding: 6px 10px;
     }
 
-    .rh-extension-gate {
-      display: none;
-      max-width: 760px;
-      margin: 16px auto 20px auto;
-      padding: 18px 20px;
-      border: 2px solid #d39b00;
-      border-radius: 10px;
-      background: #fff8d8;
-      text-align: center;
-      color: #2f241d;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    .rh-extension-gate.ready {
-      border-color: #2e7d32;
-      background: #edf8ef;
-    }
-
-    .rh-extension-gate h2 {
-      margin: 0 0 10px 0;
-      color: #143a63;
-      font-size: 22px;
-    }
-
-    .rh-extension-gate p {
-      margin: 8px auto;
-      max-width: 650px;
-      font-size: 16px;
-      line-height: 1.55;
-    }
-
-    .rh-extension-actions {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .rh-extension-button {
-      display: inline-block;
-      padding: 12px 18px;
-      border: 0;
-      border-radius: 7px;
-      background: #0d5e92;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 800;
-      line-height: 1.3;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .rh-extension-button.secondary {
-      background: #5f5147;
-    }
-
-    .rh-extension-small {
-      margin-top: 12px !important;
-      font-size: 13px !important;
-      color: #5f5147;
-    }
-
-    .rh-extension-intro {
-      max-width: 650px;
-      margin: 12px auto 18px auto;
-      padding: 12px 14px;
-      border: 1px solid #8bb6d1;
-      border-radius: 8px;
-      background: #eef7fc;
-      color: #143a63;
-      font-size: 14px;
-      line-height: 1.5;
-      text-align: left;
-    }
-
-    .rh-extension-warning {
-      margin: 14px auto !important;
-      padding: 12px 14px;
-      border: 1px solid #d39b00;
-      border-radius: 7px;
-      background: #fffdf2;
-      text-align: left;
-    }
-
     .search-area {
       max-width: 360px;
       margin: 12px auto 8px auto;
@@ -833,6 +748,8 @@ height: 100dvh !important;
         </div>
       </div>
 
+     
+
       <div class="separator"></div>
 
 <div class="section-title" id="eventTitle" style="display:none;"></div>
@@ -1000,36 +917,6 @@ height: 100dvh !important;
 <div id="crewScreen" style="display:none; max-width:720px; margin:20px auto; border:1px solid #bfb6aa; padding:28px; background:white; text-align:center; border-radius:6px;">
 
   <h3 style="text-align:center;"> ΚΑΤΑΧΩΡΗΣΗ ΣΤΟΙΧΕΙΩΝ ΠΛΗΡΩΜΑΤΟΣ</h3>
-
-  <div class="rh-extension-intro">
-    Ο έλεγχος των αθλητικών δελτίων πραγματοποιείται μέσω της επίσημης επέκτασης RegattaHub. Αν δεν είναι ήδη εγκατεστημένη, θα σας δοθούν οδηγίες εγκατάστασης.
-  </div>
-
-  <section id="rhExtensionGate" class="rh-extension-gate" aria-live="polite">
-    <h2 id="rhExtensionTitle">Απαιτείται η επέκταση RegattaHub</h2>
-    <div id="rhExtensionChecking" style="display:none;">
-      <p>Ελέγχεται αν η επίσημη επέκταση RegattaHub είναι εγκατεστημένη…</p>
-    </div>
-    <div id="rhExtensionMissing" style="display:none;">
-      <p><strong>Για να ελεγχθεί εάν τα μέλη του πληρώματός σας διαθέτουν ενεργό αθλητικό δελτίο, απαιτείται η επίσημη επέκταση RegattaHub.</strong></p>
-      <p>Η εγκατάσταση γίνεται μόνο μία φορά μέσω του Chrome Web Store.</p>
-      <p class="rh-extension-warning"><strong>Σημαντική ενημέρωση:</strong> Επειδή η επέκταση δημοσιεύθηκε πρόσφατα, ο Chrome ενδέχεται να εμφανίσει το μήνυμα «Συνεχίστε με προσοχή». Πρόκειται για αυτόματη προειδοποίηση του Chrome προς νέες επεκτάσεις και δεν σημαίνει ότι εντοπίστηκε πρόβλημα.<br><br>Πατήστε «Συνέχεια για εγκατάσταση» και στη συνέχεια «Προσθήκη επέκτασης».</p>
-      <div class="rh-extension-actions">
-        <a
-          class="rh-extension-button"
-          href="https://chromewebstore.google.com/detail/kldakciecedlfhddibdnoebklnfblpag"
-          target="_blank"
-          rel="noopener noreferrer"
-        >ΕΓΚΑΤΑΣΤΑΣΗ ΕΠΕΚΤΑΣΗΣ REGATTAHUB</a>
-        <button id="rhExtensionRecheck" class="rh-extension-button secondary" type="button">ΕΓΚΑΤΑΣΤΑΘΗΚΕ — ΕΛΕΓΧΟΣ ΞΑΝΑ</button>
-      </div>
-      <p class="rh-extension-small">Μετά την εγκατάσταση, επιστρέψτε σε αυτή τη σελίδα και πατήστε «ΕΛΕΓΧΟΣ ΞΑΝΑ». Τα στοιχεία που έχετε ήδη συμπληρώσει θα διατηρηθούν.</p>
-    </div>
-    <div id="rhExtensionReady" style="display:none;">
-      <p><strong>✓ Η επέκταση RegattaHub εντοπίστηκε.</strong></p>
-      <p id="rhExtensionVersionText">Ξεκινά ο έλεγχος των αθλητικών δελτίων…</p>
-    </div>
-  </section>
 
   <div style="margin-bottom:20px;">
 <strong>ΚΥΒΕΡΝΗΤΗΣ</strong><br>
@@ -2629,8 +2516,7 @@ function getEioImportTarget_() {
 
 function openEioAthleteRegistry(target) {
   const eioUrl = "https://eio.gr/clubs/get_player.php";
-  const importTarget = target || "captain";
-  setEioImportTarget_(importTarget);
+  setEioImportTarget_(target || "captain");
 
   // Με εγκατεστημένο Helper, η επέκταση ανοίγει/ενεργοποιεί την ΕΙΟ
   // και θυμάται ποια καρτέλα RegattaHub πρέπει να επαναφέρει.
@@ -2641,11 +2527,8 @@ function openEioAthleteRegistry(target) {
     return;
   }
 
-  // Χωρίς Helper δεν ανοίγουμε την ΕΙΟ απροειδοποίητα. Εμφανίζουμε
-  // τις οδηγίες εγκατάστασης ακριβώς τη στιγμή που ζητείται ο έλεγχος.
-  if (window.RH_EXTENSION_GATE) {
-    window.RH_EXTENSION_GATE.request(importTarget);
-  }
+  // Ασφαλές fallback αν δεν έχει εγκατασταθεί ακόμη η επέκταση.
+  window.open(eioUrl, "_blank", "noopener");
 }
 
 function startSecondCaptainEio() {
@@ -3441,147 +3324,6 @@ function loadCrewFromJson(crewJson) {
     addCrewMemberFromData(member);
   });
 }
-</script>
-<script>
-  (function setupRegattaHubExtensionGate() {
-    const gate = document.getElementById("rhExtensionGate");
-    const checking = document.getElementById("rhExtensionChecking");
-    const missing = document.getElementById("rhExtensionMissing");
-    const ready = document.getElementById("rhExtensionReady");
-    const versionText = document.getElementById("rhExtensionVersionText");
-    const recheckButton = document.getElementById("rhExtensionRecheck");
-    const resumeStorageKey = "rhExtensionResumeTarget";
-    let pendingTarget = "";
-
-    function helperVersion() {
-      return String(
-        document.documentElement.dataset.rhEioHelperVersion || ""
-      ).trim();
-    }
-
-    function helperIsReady() {
-      return document.documentElement.dataset.rhEioHelperReady === "1";
-    }
-
-    function hideGate() {
-      gate.style.display = "none";
-      gate.classList.remove("ready");
-      checking.style.display = "none";
-      missing.style.display = "none";
-      ready.style.display = "none";
-    }
-
-    function showReady(version, resumeTarget) {
-      gate.style.display = "block";
-      gate.classList.add("ready");
-      checking.style.display = "none";
-      missing.style.display = "none";
-      ready.style.display = "block";
-      versionText.textContent = version
-        ? "Έκδοση " + version + " — ξεκινά ο έλεγχος των αθλητικών δελτίων…"
-        : "Ξεκινά ο έλεγχος των αθλητικών δελτίων…";
-
-      gate.scrollIntoView({ behavior: "smooth", block: "center" });
-
-      if (resumeTarget) {
-        window.setTimeout(function () {
-          hideGate();
-          openEioAthleteRegistry(resumeTarget);
-        }, 700);
-      }
-    }
-
-    function showMissing(target) {
-      pendingTarget = target || pendingTarget || "captain";
-
-      if (helperIsReady()) {
-        showReady(helperVersion(), pendingTarget);
-        return;
-      }
-
-      gate.style.display = "block";
-      gate.classList.remove("ready");
-      checking.style.display = "none";
-      ready.style.display = "none";
-      missing.style.display = "block";
-      gate.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
-    function requestExtension(target) {
-      pendingTarget = target || "captain";
-      showMissing(pendingTarget);
-    }
-
-    function restoreAfterInstallIfNeeded() {
-      let resumeTarget = "";
-
-      try {
-        resumeTarget = sessionStorage.getItem(resumeStorageKey) || "";
-      } catch (_) {}
-
-      if (!resumeTarget) return;
-
-      try {
-        sessionStorage.removeItem(resumeStorageKey);
-      } catch (_) {}
-
-      const acceptTerms = document.getElementById("acceptTermsCheck");
-      if (acceptTerms) acceptTerms.checked = true;
-
-      if (typeof restoreEntryState === "function") {
-        restoreEntryState();
-      }
-
-      pendingTarget = resumeTarget;
-
-      window.setTimeout(function () {
-        if (helperIsReady()) {
-          showReady(helperVersion(), resumeTarget);
-        } else {
-          showMissing(resumeTarget);
-        }
-      }, 250);
-    }
-
-    window.RH_EXTENSION_GATE = {
-      isReady: helperIsReady,
-      request: requestExtension
-    };
-
-    document.addEventListener("regattahub:eio-helper-ready", function (event) {
-      const version = String(
-        event && event.detail && event.detail.version || helperVersion()
-      ).trim();
-      if (pendingTarget) {
-        showReady(version, pendingTarget);
-      }
-    });
-
-    if (recheckButton) {
-      recheckButton.addEventListener("click", function () {
-        if (helperIsReady()) {
-          showReady(helperVersion(), pendingTarget || "captain");
-          return;
-        }
-
-        if (typeof saveEntryState === "function") {
-          saveEntryState();
-        }
-
-        try {
-          sessionStorage.setItem(
-            resumeStorageKey,
-            pendingTarget || getEioImportTarget_() || "captain"
-          );
-        } catch (_) {}
-
-        window.location.reload();
-      });
-    }
-
-    hideGate();
-    restoreAfterInstallIfNeeded();
-  })();
 </script>
 </body>
 </html>
